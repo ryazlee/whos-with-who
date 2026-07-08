@@ -1,43 +1,45 @@
 :root {
-  --text: #7a6b62;
-  --text-h: #2d2420;
-  --bg: #fff6ee;
-  --border: #f0e4d8;
-  --code-bg: #ffefe0;
-  --accent: #ff5c3a;
-  --accent-2: #ffd166;
-  --accent-bg: rgba(255, 92, 58, 0.12);
-  --accent-border: rgba(255, 92, 58, 0.25);
+  --text: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --accent: #111827;
+  --radius: 10px;
 
-  --sans: 'Nunito', system-ui, -apple-system, sans-serif;
-  --display: 'Fredoka', 'Nunito', system-ui, sans-serif;
-
-  font: 16px/1.5 var(--sans);
-  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 html.theme-dark {
   color-scheme: dark;
-  --text: #c4b0a4;
-  --text-h: #fff5ee;
-  --bg: #1a1412;
-  --border: #3d322c;
-  --code-bg: #2a221e;
-  --accent: #ff7a5c;
-  --accent-2: #ffd166;
-  --accent-bg: rgba(255, 122, 92, 0.14);
-  --accent-border: rgba(255, 122, 92, 0.28);
+  --text: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --bg: #111827;
+  --surface: #1f2937;
+  --border: #374151;
+  --border-light: #1f2937;
+  --accent: #f3f4f6;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 #root {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 auto;
   min-height: 100svh;
   display: flex;
@@ -47,7 +49,7 @@ html.theme-dark {
 
 main {
   flex: 1 1 auto;
-  padding: 16px 14px 92px;
+  padding: 1.5rem 1rem 5.5rem;
 }
 
 body {
@@ -58,13 +60,22 @@ body {
 .page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.5rem;
+}
+
+.section-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
 }
 
 .gameGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0.65rem;
 }
 
 .gameGrid > * {
@@ -72,20 +83,9 @@ body {
   height: 100%;
 }
 
-/* ---------- App shell ---------- */
 .appShell {
   min-height: 100svh;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(circle at 12% 8%, rgba(255, 209, 102, 0.35) 0%, transparent 42%),
-    radial-gradient(circle at 88% 4%, rgba(255, 92, 58, 0.18) 0%, transparent 38%),
-    radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.12) 0%, transparent 50%);
-}
-
-html.theme-dark .appShell {
-  background-image:
-    radial-gradient(circle at 12% 8%, rgba(255, 209, 102, 0.08) 0%, transparent 42%),
-    radial-gradient(circle at 88% 4%, rgba(255, 122, 92, 0.1) 0%, transparent 38%);
+  background: var(--bg);
 }
 
 .topBar {
@@ -94,28 +94,23 @@ html.theme-dark .appShell {
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
-  border-bottom: 2px solid var(--border);
-  backdrop-filter: blur(14px);
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   text-decoration: none;
-  color: var(--text-h);
-  font-family: var(--display);
+  color: var(--text);
   font-weight: 600;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
   min-width: 0;
-}
-
-.brand span {
-  line-height: 1.1;
 }
 
 .bottomNavWrap {
@@ -124,7 +119,7 @@ html.theme-dark .appShell {
   right: 0;
   bottom: 0;
   z-index: 20;
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 auto;
   padding-bottom: env(safe-area-inset-bottom);
 }

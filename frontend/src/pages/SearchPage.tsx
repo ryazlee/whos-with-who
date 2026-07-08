@@ -8,12 +8,15 @@ export default function SearchPage() {
 
   return (
     <div className="page">
-      <Typography
-        variant="h6"
-        sx={{ fontFamily: '"Fredoka", sans-serif', fontWeight: 700, fontSize: '1.2rem', mb: -0.5 }}
-      >
-        Pick a game 👀
-      </Typography>
+      <div>
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+          Search
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Browse public games.
+        </Typography>
+      </div>
+
       <GameGrid>
         {publicGames.map((g) => (
           <GameCard

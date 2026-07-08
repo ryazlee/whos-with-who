@@ -5,23 +5,19 @@ import { MATCHING_MODE_LABELS } from '../game/matchingModes'
 type Props = {
   mode: MatchingMode
   size?: 'small' | 'medium'
-  variant?: 'filled' | 'outlined'
 }
 
-export default function MatchingModeChip({ mode, size = 'small', variant = 'outlined' }: Props) {
+export default function MatchingModeChip({ mode, size = 'small' }: Props) {
   return (
     <Chip
       label={MATCHING_MODE_LABELS[mode]}
       size={size}
-      variant={variant}
-      color={variant === 'filled' ? 'primary' : 'default'}
+      variant="outlined"
       sx={{
-        fontWeight: 700,
-        fontSize: size === 'small' ? 10.5 : 12,
-        borderRadius: 999,
         height: size === 'small' ? 22 : 26,
-        bgcolor: variant === 'outlined' ? 'action.hover' : undefined,
-        border: 'none',
+        fontSize: size === 'small' ? '0.7rem' : '0.75rem',
+        fontWeight: 500,
+        borderColor: 'divider',
         flexShrink: 0,
       }}
     />

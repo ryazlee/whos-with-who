@@ -20,9 +20,9 @@ type Props = {
 }
 
 const NAV = [
-  { key: 'home', label: 'Play', to: '/', icon: HomeOutlinedIcon },
-  { key: 'search', label: 'Browse', to: '/search', icon: SearchOutlinedIcon },
-  { key: 'create', label: 'Make', to: '/create', icon: AddOutlinedIcon },
+  { key: 'home', label: 'Home', to: '/', icon: HomeOutlinedIcon },
+  { key: 'search', label: 'Search', to: '/search', icon: SearchOutlinedIcon },
+  { key: 'create', label: 'Create', to: '/create', icon: AddOutlinedIcon },
   { key: 'me', label: 'Me', to: '/me', icon: PersonOutlineOutlinedIcon },
 ] as const
 
@@ -35,8 +35,7 @@ function activeKeyFromPath(path: string): string {
 }
 
 export default function PageShell({ children }: Props) {
-  const location = useLocation()
-  const path = location.pathname
+  const path = useLocation().pathname
   const { mode, toggleMode } = useThemeMode()
   const activeKey = activeKeyFromPath(path)
 
@@ -44,7 +43,7 @@ export default function PageShell({ children }: Props) {
     <div className="appShell">
       <header className="topBar">
         <Link to="/" className="brand">
-          <OwlMascot size={34} />
+          <OwlMascot size={24} />
           <span>Who&apos;s With Who?</span>
         </Link>
 
@@ -52,12 +51,7 @@ export default function PageShell({ children }: Props) {
           <IconButton
             onClick={() => toggleMode()}
             size="small"
-            sx={{
-              color: 'text.secondary',
-              ml: 'auto',
-              bgcolor: 'action.hover',
-              '&:hover': { bgcolor: 'secondary.main', color: 'secondary.contrastText' },
-            }}
+            sx={{ color: 'text.secondary', ml: 'auto' }}
             aria-label="Toggle theme"
           >
             {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
@@ -68,17 +62,13 @@ export default function PageShell({ children }: Props) {
       <main>{children}</main>
 
       <div className="bottomNavWrap">
-        <BottomNavigation
-          value={activeKey}
-          showLabels
-          sx={{ height: 68 }}
-        >
+        <BottomNavigation value={activeKey} showLabels sx={{ height: 64 }}>
           {NAV.map(({ key, label, to, icon: Icon }) => (
             <BottomNavigationAction
               key={key}
               label={label}
               value={key}
-              icon={<Icon />}
+              icon={<Icon fontSize="small" />}
               component={Link}
               to={to}
             />

@@ -3,7 +3,6 @@ import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
 import { formatAttemptCount, formatTag } from '../lib/formatters'
 import { getCompletedAttemptForGame } from '../lib/localAttempts'
-import { tagChipColors } from '../lib/tagColors'
 import FaceStack from './FaceStack'
 import MatchingModeChip from './MatchingModeChip'
 
@@ -14,11 +13,9 @@ type Props = {
   dailyDate?: string
 }
 
-const displayFont = '"Fredoka", "Nunito", sans-serif'
-
 function MetaLine({ items }: { items: string[] }) {
   return (
-    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, lineHeight: 1.4 }}>
+    <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
       {items.join(' · ')}
     </Typography>
   )
@@ -27,27 +24,22 @@ function MetaLine({ items }: { items: string[] }) {
 function TagRow({ tags }: { tags: string[] }) {
   if (!tags.length) return null
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-      {tags.map((tag) => {
-        const colors = tagChipColors(tag)
-        return (
-          <Chip
-            key={tag}
-            label={formatTag(tag)}
-            size="small"
-            sx={{
-              height: 22,
-              fontSize: 10.5,
-              fontWeight: 700,
-              borderRadius: 999,
-              bgcolor: colors.bg,
-              color: colors.text,
-              border: 'none',
-              '& .MuiChip-label': { px: 0.9 },
-            }}
-          />
-        )
-      })}
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.35 }}>
+      {tags.map((tag) => (
+        <Chip
+          key={tag}
+          label={formatTag(tag)}
+          size="small"
+          variant="outlined"
+          sx={{
+            height: 22,
+            fontSize: '0.75rem',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            '& .MuiChip-label': { px: 0.75 },
+          }}
+        />
+      ))}
     </Box>
   )
 }
@@ -60,8 +52,8 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
 
   const metaItems = [
     `${game.peopleCount} people`,
-    `${formatAttemptCount(game.attemptCount)} guesses`,
-    completed ? `you got ${completed.score100}` : null,
+    `${formatAttemptCount(game.attemptCount)} plays`,
+    completed ? `you: ${completed.score100}` : null,
   ].filter(Boolean) as string[]
 
   if (featured) {
@@ -76,70 +68,28 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
     return (
       <Box
         sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: 4,
+          borderRadius: 2.5,
+          border: '1px solid',
+          borderColor: 'divider',
           bgcolor: 'background.paper',
-          p: 2.25,
-          boxShadow: '0 8px 28px rgba(255, 92, 58, 0.18), 0 2px 8px rgba(45, 36, 32, 0.06)',
-          border: '3px solid',
-          borderColor: 'secondary.main',
+          p: 2,
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -30,
-            right: -30,
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            bgcolor: 'secondary.main',
-            opacity: 0.35,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <Chip
-          label="🎯 Today's game"
-          size="small"
-          sx={{
-            mb: 1.25,
-            fontWeight: 700,
-            fontFamily: displayFont,
-            bgcolor: 'secondary.main',
-            color: 'secondary.contrastText',
-            border: 'none',
-            fontSize: 12,
-          }}
-        />
-
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, fontWeight: 600 }}>
+        <Typography className="section-label" component="p" sx={{ mb: 0.5 }}>
+          Daily challenge
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
           {dateLabel}
         </Typography>
 
-        <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={54} max={5} />
+        <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={48} max={5} />
 
-        <Typography
-          variant="h5"
-          sx={{ mt: 1.5, fontFamily: displayFont, fontWeight: 700, lineHeight: 1.1 }}
-        >
+        <Typography variant="h5" sx={{ mt: 1.5, lineHeight: 1.25 }}>
           {game.title}
         </Typography>
 
         {game.description ? (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mt: 0.65,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              fontWeight: 500,
-            }}
-          >
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
             {game.description}
           </Typography>
         ) : null}
@@ -159,10 +109,9 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
           variant="contained"
           color="primary"
           fullWidth
-          size="large"
-          sx={{ mt: 2, py: 1.35, fontSize: '1.05rem' }}
+          sx={{ mt: 1.75 }}
         >
-          {completed ? 'See your score ✨' : "Let's play!"}
+          {completed ? 'View score' : 'Play'}
         </Button>
       </Box>
     )
@@ -179,33 +128,25 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
           height: '100%',
           textDecoration: 'none',
           color: 'inherit',
-          borderRadius: 3,
-          bgcolor: 'background.paper',
-          p: 1.35,
-          boxShadow: '0 2px 10px rgba(45, 36, 32, 0.06)',
-          border: '2px solid',
+          borderRadius: 2.5,
+          border: '1px solid',
           borderColor: 'divider',
-          transition: 'transform 140ms ease, box-shadow 140ms ease',
-          '&:hover': {
-            boxShadow: '0 6px 18px rgba(255, 92, 58, 0.14)',
-            transform: 'translateY(-2px)',
-          },
-          '&:active': {
-            transform: 'scale(0.98)',
-          },
+          bgcolor: 'background.paper',
+          p: 1.25,
+          transition: 'border-color 0.15s',
+          '&:hover': { borderColor: 'text.secondary' },
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5, mb: 0.85 }}>
-          <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={38} max={3} />
+          <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={34} max={3} />
           <MatchingModeChip mode={game.ownerMatchingMode} />
         </Box>
 
         <Typography
-          variant="subtitle2"
+          variant="body2"
           sx={{
-            fontFamily: displayFont,
-            fontWeight: 700,
-            lineHeight: 1.15,
+            fontWeight: 500,
+            lineHeight: 1.35,
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -216,7 +157,7 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
           {game.title}
         </Typography>
 
-        <Box sx={{ mt: 0.85 }}>
+        <Box sx={{ mt: 0.75 }}>
           <MetaLine items={metaItems} />
         </Box>
 

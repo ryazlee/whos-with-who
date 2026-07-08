@@ -97,8 +97,8 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
     <Stack spacing={2}>
       {pairs.length > 0 ? (
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.04em' }}>
-            PAIRS
+          <Typography className="section-label" component="p">
+            Pairs
           </Typography>
           <Stack spacing={1.5} sx={{ mt: 0.75 }}>
             {pairs.map(([a, b]) => (
@@ -134,8 +134,8 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
 
       {singles.length > 0 ? (
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.04em' }}>
-            SINGLE
+          <Typography className="section-label" component="p">
+            Single
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.75 }}>
             {singles.map((p) => (
@@ -157,8 +157,8 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
 
       {unassigned.length > 0 ? (
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.04em' }}>
-            {selectedId ? 'TAP TO PAIR' : 'TAP OR DRAG'}
+          <Typography className="section-label" component="p">
+            {selectedId ? 'Tap to pair' : 'Tap or drag'}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.75 }}>
             {unassigned.map((p) => (

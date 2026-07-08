@@ -18,7 +18,7 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
   const leftover = Math.max(0, (totalCount ?? people.length) - shown.length)
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', pl: `${size * 0.22}px` }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', pl: `${size * 0.2}px` }}>
       {shown.map((p, i) => (
         <Box
           key={p.id}
@@ -29,15 +29,14 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
           sx={{
             width: size,
             height: size,
-            borderRadius: '38%',
+            borderRadius: '50%',
             objectFit: 'cover',
-            border: '2.5px solid',
+            border: '2px solid',
             borderColor: 'background.paper',
-            ml: i === 0 ? `-${size * 0.22}px` : `-${size * 0.3}px`,
+            ml: i === 0 ? `-${size * 0.2}px` : `-${size * 0.26}px`,
             position: 'relative',
             zIndex: shown.length - i,
             bgcolor: 'divider',
-            boxShadow: '0 2px 6px rgba(45, 36, 32, 0.12)',
           }}
         />
       ))}
@@ -46,19 +45,18 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
           sx={{
             width: size,
             height: size,
-            borderRadius: '38%',
-            ml: `-${size * 0.3}px`,
+            borderRadius: '50%',
+            ml: `-${size * 0.26}px`,
             position: 'relative',
             zIndex: 0,
             display: 'grid',
             placeItems: 'center',
-            bgcolor: 'secondary.main',
-            border: '2.5px solid',
+            bgcolor: 'action.hover',
+            border: '2px solid',
             borderColor: 'background.paper',
             fontSize: size * 0.28,
-            fontWeight: 700,
-            color: 'secondary.contrastText',
-            boxShadow: '0 2px 6px rgba(45, 36, 32, 0.1)',
+            fontWeight: 500,
+            color: 'text.secondary',
           }}
         >
           +{leftover}

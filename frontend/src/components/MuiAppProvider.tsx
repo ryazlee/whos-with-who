@@ -16,22 +16,24 @@ const STORAGE_KEY = 'www_theme_mode'
 
 const palette = {
   light: {
-    primary: '#FF5C3A',
-    secondary: '#FFD166',
-    bg: '#FFF6EE',
-    paper: '#FFFFFF',
-    text: '#2D2420',
-    textSecondary: '#7A6B62',
-    divider: '#F0E4D8',
+    primary: '#111827',
+    bg: '#fafafa',
+    paper: '#ffffff',
+    text: '#111827',
+    textSecondary: '#4b5563',
+    textMuted: '#9ca3af',
+    divider: '#e5e7eb',
+    dividerLight: '#f3f4f6',
   },
   dark: {
-    primary: '#FF7A5C',
-    secondary: '#FFD166',
-    bg: '#1A1412',
-    paper: '#261E1A',
-    text: '#FFF5EE',
-    textSecondary: '#C4B0A4',
-    divider: '#3D322C',
+    primary: '#f3f4f6',
+    bg: '#111827',
+    paper: '#1f2937',
+    text: '#f9fafb',
+    textSecondary: '#9ca3af',
+    textMuted: '#6b7280',
+    divider: '#374151',
+    dividerLight: '#1f2937',
   },
 }
 
@@ -55,8 +57,7 @@ export function useThemeMode() {
   return ctx
 }
 
-const displayFont = '"Fredoka", "Nunito", system-ui, sans-serif'
-const bodyFont = '"Nunito", system-ui, -apple-system, sans-serif'
+const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 
 export default function MuiAppProvider({ children }: PropsWithChildren) {
   const [mode, setModeState] = useState<ThemeMode>(() => detectInitialMode())
@@ -68,57 +69,25 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
         mode,
         primary: {
           main: p.primary,
-          contrastText: '#FFFFFF',
-        },
-        secondary: {
-          main: p.secondary,
-          contrastText: '#3D2E00',
-        },
-        background: {
-          default: p.bg,
-          paper: p.paper,
+          contrastText: mode === 'light' ? '#ffffff' : '#111827',
         },
         text: {
           primary: p.text,
           secondary: p.textSecondary,
         },
+        background: {
+          default: p.bg,
+          paper: p.paper,
+        },
         divider: p.divider,
-        success: { main: '#5EC269' },
+        success: { main: '#059669' },
+        error: { main: '#dc2626' },
       },
-      shape: { borderRadius: 18 },
+      shape: { borderRadius: 10 },
       typography: {
-        fontFamily: bodyFont,
-        h3: {
-          fontFamily: displayFont,
-          fontWeight: 700,
-          letterSpacing: '-0.02em',
-        },
-        h5: {
-          fontFamily: displayFont,
-          fontSize: '1.4rem',
-          fontWeight: 600,
-          letterSpacing: '-0.01em',
-        },
-        h6: {
-          fontFamily: displayFont,
-          fontSize: '1.1rem',
-          fontWeight: 600,
-        },
-        subtitle1: {
-          fontFamily: displayFont,
-          fontWeight: 600,
-        },
-        subtitle2: {
-          fontFamily: displayFont,
-          fontWeight: 600,
-        },
-        body2: { fontSize: '0.9rem', lineHeight: 1.55 },
-        button: {
-          fontFamily: displayFont,
-          textTransform: 'none',
-          fontWeight: 600,
-          fontSize: '0.95rem',
-        },
+        fontFamily,
+        h5: { fontWeight: 600, letterSpacing: '-0.02em' },
+        button: { textTransform: 'none', fontWeight: 500 },
       },
       components: {
         MuiCssBaseline: {
@@ -128,58 +97,43 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
         },
         MuiCard: {
           defaultProps: { elevation: 0 },
+          styleOverrides: {
+            root: {
+              border: `1px solid ${p.divider}`,
+              backgroundImage: 'none',
+            },
+          },
         },
         MuiButton: {
           styleOverrides: {
             root: {
-              borderRadius: 999,
+              borderRadius: 10,
               boxShadow: 'none',
-              '&:hover': { boxShadow: '0 4px 14px rgba(255, 92, 58, 0.28)' },
-              '&.MuiButton-contained': {
-                background: `linear-gradient(180deg, ${p.primary} 0%, ${mode === 'light' ? '#E84E2E' : p.primary} 100%)`,
-              },
+              '&:hover': { boxShadow: 'none', opacity: 0.9 },
             },
           },
         },
         MuiChip: {
           styleOverrides: {
-            root: { fontWeight: 600, fontFamily: bodyFont },
+            root: { fontWeight: 500 },
           },
         },
         MuiBottomNavigation: {
           styleOverrides: {
             root: {
               backgroundColor: p.paper,
-              borderTop: `2px solid ${p.divider}`,
-              borderRadius: '22px 22px 0 0',
-              boxShadow: mode === 'light' ? '0 -4px 24px rgba(45, 36, 32, 0.06)' : 'none',
-            },
-          },
-        },
-        MuiBottomNavigationAction: {
-          styleOverrides: {
-            root: {
-              '&.Mui-selected': {
-                color: p.primary,
-              },
-            },
-            label: {
-              fontFamily: displayFont,
-              fontSize: '0.7rem !important',
+              borderTop: `1px solid ${p.divider}`,
             },
           },
         },
         MuiLinearProgress: {
           styleOverrides: {
             root: {
-              borderRadius: 999,
-              height: 8,
-              bgcolor: p.divider,
+              borderRadius: 4,
+              height: 4,
+              bgcolor: p.dividerLight,
             },
-            bar: {
-              borderRadius: 999,
-              background: `linear-gradient(90deg, ${p.primary}, ${p.secondary})`,
-            },
+            bar: { borderRadius: 4, bgcolor: p.text },
           },
         },
       },

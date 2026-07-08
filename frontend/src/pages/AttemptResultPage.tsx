@@ -12,15 +12,6 @@ import PageLoading from '../components/PageLoading'
 import PersonAvatar from '../components/PersonAvatar'
 import { useAttemptResult } from '../hooks/useGame'
 
-const displayFont = '"Fredoka", sans-serif'
-
-function scoreMessage(score: number) {
-  if (score >= 90) return 'Crushed it! 🎉'
-  if (score >= 70) return 'Pretty good! 😎'
-  if (score >= 50) return 'Not bad — room to grow'
-  return 'Tough crowd today'
-}
-
 export default function AttemptResultPage() {
   const { attemptId } = useParams<{ attemptId: string }>()
   const { result, loading, error } = useAttemptResult(attemptId ?? '')
@@ -44,55 +35,31 @@ export default function AttemptResultPage() {
 
   return (
     <div className="page">
-      <Box
-        sx={{
-          textAlign: 'center',
-          py: 1.5,
-          px: 2,
-          borderRadius: 4,
-          bgcolor: 'background.paper',
-          border: '3px solid',
-          borderColor: 'secondary.main',
-          boxShadow: '0 6px 20px rgba(255, 92, 58, 0.12)',
-        }}
-      >
-        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-          Your score
-        </Typography>
-        <Typography
-          variant="h3"
-          color="primary.main"
-          sx={{ fontFamily: displayFont, fontWeight: 700, lineHeight: 1, mt: 0.25 }}
-        >
+      <Box sx={{ textAlign: 'center', py: 0.5 }}>
+        <Typography variant="h3" sx={{ fontWeight: 600, lineHeight: 1, letterSpacing: '-0.03em' }}>
           {result.score100}
         </Typography>
-        <Typography variant="body2" sx={{ mt: 0.75, fontWeight: 700 }}>
-          {scoreMessage(result.score100)}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontWeight: 600 }}>
-          {result.correctCount}/{result.totalQuestions} right · {result.displayNameSnapshot}
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+          {result.correctCount}/{result.totalQuestions} correct · {result.displayNameSnapshot}
         </Typography>
       </Box>
 
-      <Typography
-        variant="subtitle2"
-        sx={{ fontFamily: displayFont, fontWeight: 700, color: 'text.primary' }}
-      >
-        What everyone guessed
+      <Typography className="section-label" component="p">
+        Crowd
       </Typography>
-      <Stack spacing={1.5} sx={{ mt: 0.5 }}>
+      <Stack spacing={1.25}>
         {result.communityPerPerson.map((x) => {
           const person = personById.get(x.personId)
           return (
             <Box key={x.personId}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6, gap: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                  {person ? <PersonAvatar person={person} size={34} showName={false} /> : null}
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  {person ? <PersonAvatar person={person} size={30} showName={false} /> : null}
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {personNameById.get(x.personId)}
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, fontWeight: 600 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
                   {label(x.topPartnerId)} {x.topPercent}%
                 </Typography>
               </Box>
@@ -102,49 +69,27 @@ export default function AttemptResultPage() {
         })}
       </Stack>
 
-      <Typography
-        variant="subtitle2"
-        sx={{ fontFamily: displayFont, fontWeight: 700, color: 'text.primary', mt: 0.5 }}
-      >
-        Your picks
+      <Typography className="section-label" component="p" sx={{ mt: 0.5 }}>
+        You
       </Typography>
-      <Stack
-        spacing={0}
-        sx={{
-          mt: 0.5,
-          borderRadius: 3,
-          overflow: 'hidden',
-          border: '2px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-        }}
-      >
-        {result.perPerson.map((row, i) => {
+      <Stack spacing={0} divider={<Box sx={{ borderBottom: 1, borderColor: 'divider' }} />}>
+        {result.perPerson.map((row) => {
           const person = personById.get(row.personId)
           return (
             <Box
               key={row.personId}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                py: 1.1,
-                px: 1.25,
-                gap: 1,
-                borderTop: i > 0 ? '1px solid' : 'none',
-                borderColor: 'divider',
-              }}
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.85, gap: 1 }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                {person ? <PersonAvatar person={person} size={34} showName={false} /> : null}
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {person ? <PersonAvatar person={person} size={30} showName={false} /> : null}
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {personNameById.get(row.personId)}
                 </Typography>
               </Box>
               <Typography
                 variant="body2"
                 color={row.isCorrect ? 'success.main' : 'text.secondary'}
-                sx={{ textAlign: 'right', flexShrink: 0, fontWeight: 700 }}
+                sx={{ textAlign: 'right', flexShrink: 0 }}
               >
                 {row.isCorrect ? '✓' : '✗'} {label(row.selectedPartnerId)}
                 {!row.isCorrect ? ` → ${label(row.correctPartnerId)}` : ''}
@@ -154,16 +99,8 @@ export default function AttemptResultPage() {
         })}
       </Stack>
 
-      <Button
-        component={RouterLink}
-        to="/"
-        variant="contained"
-        color="primary"
-        fullWidth
-        size="large"
-        sx={{ py: 1.35, mt: 1 }}
-      >
-        Play another
+      <Button component={RouterLink} to="/" variant="contained" color="primary" fullWidth sx={{ mt: 1 }}>
+        Home
       </Button>
     </div>
   )

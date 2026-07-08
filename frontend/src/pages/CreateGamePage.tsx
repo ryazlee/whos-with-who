@@ -63,38 +63,55 @@ export default function CreateGamePage() {
       />
 
       <Box>
-        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.75 }}>
-          MATCHING MODE
+        <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
+          Matching mode
         </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-          {MATCHING_MODES.map((mode) => (
-            <Chip
-              key={mode}
-              label={MATCHING_MODE_LABELS[mode]}
-              size="small"
-              color={ownerMatchingMode === mode ? 'primary' : 'default'}
-              variant={ownerMatchingMode === mode ? 'filled' : 'outlined'}
-              onClick={() => setOwnerMatchingMode(mode)}
-              sx={{ fontWeight: 600, fontSize: 11 }}
-            />
-          ))}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.35 }}>
+          {MATCHING_MODES.map((mode) => {
+            const active = ownerMatchingMode === mode
+            return (
+              <Chip
+                key={mode}
+                label={MATCHING_MODE_LABELS[mode]}
+                size="small"
+                onClick={() => setOwnerMatchingMode(mode)}
+                sx={{
+                  height: 28,
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  borderRadius: '99px',
+                  border: '1px solid',
+                  borderColor: active ? 'primary.main' : 'divider',
+                  bgcolor: active ? 'primary.main' : 'background.paper',
+                  color: active ? 'primary.contrastText' : 'text.secondary',
+                }}
+              />
+            )
+          })}
           <Chip
-            label={modeLocked ? 'Locked for players' : 'Players can switch'}
+            label={modeLocked ? 'Locked' : 'Unlocked'}
             size="small"
-            variant="outlined"
-            color={modeLocked ? 'primary' : 'default'}
             onClick={() => setModeLocked((v) => !v)}
-            sx={{ fontWeight: 600, fontSize: 11 }}
+            sx={{
+              height: 28,
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              borderRadius: '99px',
+              border: '1px solid',
+              borderColor: modeLocked ? 'primary.main' : 'divider',
+              bgcolor: modeLocked ? 'primary.main' : 'background.paper',
+              color: modeLocked ? 'primary.contrastText' : 'text.secondary',
+            }}
           />
         </Box>
         <Box sx={{ mt: 1 }}>
-          <MatchingModeChip mode={ownerMatchingMode} variant={modeLocked ? 'filled' : 'outlined'} />
+          <MatchingModeChip mode={ownerMatchingMode} />
         </Box>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-          PEOPLE · PHOTO REQUIRED
+        <Typography className="section-label" component="p">
+          People
         </Typography>
         <IconButton size="small" onClick={addPerson} aria-label="Add person">
           <AddOutlinedIcon fontSize="small" />
