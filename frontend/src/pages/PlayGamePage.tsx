@@ -8,23 +8,13 @@ import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import TapPairsPlay from '../components/TapPairsPlay'
 import type { MatchingMode } from '../game/matchingModes'
-import { isComplete as tapPairsComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
+import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { getCompletedAttemptForGame } from '../lib/localAttempts'
 import { useGameForPlay, useSubmitMatchAllAttempt } from '../hooks/useGame'
 
-function emptySelections(
-  mode: MatchingMode,
-  peopleIds: string[],
-  allowSingle: boolean,
-  fallbackPartner?: (id: string) => string | null,
-): MatchAllSelections {
-  if (mode === 'tap_pairs') return {}
-  const init: MatchAllSelections = {}
-  for (const id of peopleIds) {
-    init[id] = allowSingle ? null : (fallbackPartner?.(id) ?? null)
-  }
-  return init
+function emptySelections(_mode: MatchingMode): MatchAllSelections {
+  return {}
 }
 
 function canSubmit(mode: MatchingMode, peopleIds: string[], selections: MatchAllSelections, allowSingle: boolean) {
@@ -32,7 +22,7 @@ function canSubmit(mode: MatchingMode, peopleIds: string[], selections: MatchAll
     const assigned = selectionsToTapPairAssigned(peopleIds, selections)
     return tapPairsComplete(peopleIds, assigned, allowSingle)
   }
-  return peopleIds.every((id) => id in selections)
+  return matchAllComplete(peopleIds, selections, allowSingle)
 }
 
 export default function PlayGamePage() {
@@ -56,17 +46,12 @@ export default function PlayGamePage() {
     const preferred = getPreferredMatchingMode()
     const mode = game.modeLocked ? game.ownerMatchingMode : (preferred ?? game.ownerMatchingMode)
     setActiveMode(mode)
-    const ids = game.people.map((p) => p.id)
-    const fallbackPartner = (id: string) =>
-      game.people.find((x) => x.id !== id)?.id ?? null
-    setSelections(emptySelections(mode, ids, game.allowSingleChoice, fallbackPartner))
+    setSelections(emptySelections(mode))
   }, [game])
 
   useEffect(() => {
     if (!game) return
-    const fallbackPartner = (id: string) =>
-      people.find((x) => x.id !== id)?.id ?? null
-    setSelections(emptySelections(activeMode, peopleIds, allowSingleChoice, fallbackPartner))
+    setSelections(emptySelections(activeMode))
   }, [activeMode]) // eslint-disable-line react-hooks/exhaustive-deps -- reset picks when switching mode
 
   if (completed) {
