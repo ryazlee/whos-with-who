@@ -8,8 +8,11 @@ export default function SearchPage() {
 
   return (
     <div className="page">
-      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-        Browse games
+      <Typography
+        variant="h6"
+        sx={{ fontFamily: '"Fredoka", sans-serif', fontWeight: 700, fontSize: '1.2rem', mb: -0.5 }}
+      >
+        Pick a game 👀
       </Typography>
       <GameGrid>
         {publicGames.map((g) => (

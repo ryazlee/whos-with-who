@@ -68,17 +68,20 @@ export default function PersonAvatar({
           width: size,
           height: size,
           objectFit: 'cover',
-          borderRadius: 2.5,
-          border: '2px solid',
-          borderColor: selected ? 'primary.main' : paired ? 'primary.light' : 'divider',
-          opacity: paired && !selected ? 0.85 : 1,
-          boxShadow: selected ? '0 0 0 2px var(--accent-bg)' : 'none',
+          borderRadius: '36%',
+          border: '3px solid',
+          borderColor: selected ? 'primary.main' : paired ? 'secondary.main' : 'background.paper',
+          opacity: paired && !selected ? 0.9 : 1,
+          boxShadow: selected
+            ? '0 0 0 3px var(--accent-bg), 0 4px 12px rgba(255, 92, 58, 0.25)'
+            : '0 3px 10px rgba(45, 36, 32, 0.1)',
         }}
       />
       <Typography
         variant="caption"
         sx={{
-          fontWeight: 600,
+          fontWeight: 700,
+          fontFamily: '"Fredoka", sans-serif',
           lineHeight: 1.2,
           textAlign: 'center',
           display: showName ? 'block' : 'none',

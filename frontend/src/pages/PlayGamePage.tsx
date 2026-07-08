@@ -122,9 +122,9 @@ export default function PlayGamePage() {
           size="large"
           disabled={submitAttempt.isPending || !submitReady}
           onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
-          sx={{ borderRadius: 2, py: 1.5 }}
+          sx={{ py: 1.4, fontSize: '1.05rem' }}
         >
-          {submitAttempt.isPending ? '…' : 'Submit'}
+          {submitAttempt.isPending ? 'Locking in…' : 'Lock it in!'}
         </Button>
       </Box>
     </div>

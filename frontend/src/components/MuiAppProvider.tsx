@@ -135,9 +135,9 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
               borderRadius: 999,
               boxShadow: 'none',
               '&:hover': { boxShadow: '0 4px 14px rgba(255, 92, 58, 0.28)' },
-            },
-            containedPrimary: {
-              background: `linear-gradient(180deg, ${p.primary} 0%, ${mode === 'light' ? '#E84E2E' : p.primary} 100%)`,
+              '&.MuiButton-contained': {
+                background: `linear-gradient(180deg, ${p.primary} 0%, ${mode === 'light' ? '#E84E2E' : p.primary} 100%)`,
+              },
             },
           },
         },
