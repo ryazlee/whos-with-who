@@ -1,6 +1,7 @@
 /** Local mock portraits for demo people (served from /public). */
 export function mockPersonImage(slug: string): string {
-  return `/mock/people/${slug}.jpg`
+  const base = import.meta.env.BASE_URL
+  return `${base}mock/people/${slug}.jpg`
 }
 
 /** Offline-friendly placeholder avatar (initials on warm background). */

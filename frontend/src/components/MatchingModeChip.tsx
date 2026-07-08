@@ -16,13 +16,13 @@ export default function MatchingModeChip({ mode, size = 'small', variant = 'outl
       variant={variant}
       color={variant === 'filled' ? 'primary' : 'default'}
       sx={{
-        fontWeight: 600,
-        fontSize: size === 'small' ? 11 : 12,
+        fontWeight: 700,
+        fontSize: size === 'small' ? 10.5 : 12,
         borderRadius: 999,
-        height: size === 'small' ? 24 : 28,
-        ...(variant === 'outlined'
-          ? { bgcolor: 'action.hover', borderColor: 'transparent' }
-          : {}),
+        height: size === 'small' ? 22 : 26,
+        bgcolor: variant === 'outlined' ? 'action.hover' : undefined,
+        border: 'none',
+        flexShrink: 0,
       }}
     />
   )

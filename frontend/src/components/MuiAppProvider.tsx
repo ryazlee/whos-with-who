@@ -14,23 +14,24 @@ const ThemeModeContext = createContext<ThemeModeContextValue | null>(null)
 
 const STORAGE_KEY = 'www_theme_mode'
 
-/** Muted terracotta — warm orange-coral, low saturation, easy on the eyes. */
 const palette = {
   light: {
-    primary: '#b86a52',
-    bg: '#f6f4f1',
-    paper: '#fffcfa',
-    text: '#2a2623',
-    textSecondary: '#6e6660',
-    divider: '#e5dfd8',
+    primary: '#FF5C3A',
+    secondary: '#FFD166',
+    bg: '#FFF6EE',
+    paper: '#FFFFFF',
+    text: '#2D2420',
+    textSecondary: '#7A6B62',
+    divider: '#F0E4D8',
   },
   dark: {
-    primary: '#e8a48c',
-    bg: '#121110',
-    paper: '#1c1a18',
-    text: '#f2eeea',
-    textSecondary: '#a39d96',
-    divider: '#2e2a27',
+    primary: '#FF7A5C',
+    secondary: '#FFD166',
+    bg: '#1A1412',
+    paper: '#261E1A',
+    text: '#FFF5EE',
+    textSecondary: '#C4B0A4',
+    divider: '#3D322C',
   },
 }
 
@@ -54,6 +55,9 @@ export function useThemeMode() {
   return ctx
 }
 
+const displayFont = '"Fredoka", "Nunito", system-ui, sans-serif'
+const bodyFont = '"Nunito", system-ui, -apple-system, sans-serif'
+
 export default function MuiAppProvider({ children }: PropsWithChildren) {
   const [mode, setModeState] = useState<ThemeMode>(() => detectInitialMode())
 
@@ -64,7 +68,11 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
         mode,
         primary: {
           main: p.primary,
-          contrastText: mode === 'dark' ? '#1a1512' : '#fffaf7',
+          contrastText: '#FFFFFF',
+        },
+        secondary: {
+          main: p.secondary,
+          contrastText: '#3D2E00',
         },
         background: {
           default: p.bg,
@@ -75,28 +83,42 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
           secondary: p.textSecondary,
         },
         divider: p.divider,
+        success: { main: '#5EC269' },
       },
-      shape: { borderRadius: 12 },
+      shape: { borderRadius: 18 },
       typography: {
-        fontFamily: '"Outfit", system-ui, -apple-system, "Segoe UI", sans-serif',
+        fontFamily: bodyFont,
+        h3: {
+          fontFamily: displayFont,
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
+        },
         h5: {
-          fontFamily: '"Fraunces", Georgia, serif',
-          fontSize: '1.35rem',
+          fontFamily: displayFont,
+          fontSize: '1.4rem',
           fontWeight: 600,
-          letterSpacing: '-0.03em',
+          letterSpacing: '-0.01em',
         },
         h6: {
-          fontFamily: '"Fraunces", Georgia, serif',
-          fontSize: '1.05rem',
+          fontFamily: displayFont,
+          fontSize: '1.1rem',
           fontWeight: 600,
         },
         subtitle1: {
-          fontFamily: '"Fraunces", Georgia, serif',
+          fontFamily: displayFont,
           fontWeight: 600,
         },
-        body2: { fontSize: '0.875rem', lineHeight: 1.55 },
-        button: { textTransform: 'none', fontWeight: 600 },
-        overline: { fontFamily: '"Outfit", system-ui, sans-serif' },
+        subtitle2: {
+          fontFamily: displayFont,
+          fontWeight: 600,
+        },
+        body2: { fontSize: '0.9rem', lineHeight: 1.55 },
+        button: {
+          fontFamily: displayFont,
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: '0.95rem',
+        },
       },
       components: {
         MuiCssBaseline: {
@@ -106,29 +128,57 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
         },
         MuiCard: {
           defaultProps: { elevation: 0 },
-          styleOverrides: {
-            root: {
-              border: `1px solid ${p.divider}`,
-              backgroundImage: 'none',
-            },
-          },
         },
         MuiButton: {
           styleOverrides: {
-            root: { boxShadow: 'none', '&:hover': { boxShadow: 'none' } },
+            root: {
+              borderRadius: 999,
+              boxShadow: 'none',
+              '&:hover': { boxShadow: '0 4px 14px rgba(255, 92, 58, 0.28)' },
+            },
+            containedPrimary: {
+              background: `linear-gradient(180deg, ${p.primary} 0%, ${mode === 'light' ? '#E84E2E' : p.primary} 100%)`,
+            },
           },
         },
         MuiChip: {
           styleOverrides: {
-            root: { fontWeight: 500 },
-            outlined: { borderColor: p.divider },
+            root: { fontWeight: 600, fontFamily: bodyFont },
           },
         },
         MuiBottomNavigation: {
           styleOverrides: {
             root: {
               backgroundColor: p.paper,
-              borderTop: `1px solid ${p.divider}`,
+              borderTop: `2px solid ${p.divider}`,
+              borderRadius: '22px 22px 0 0',
+              boxShadow: mode === 'light' ? '0 -4px 24px rgba(45, 36, 32, 0.06)' : 'none',
+            },
+          },
+        },
+        MuiBottomNavigationAction: {
+          styleOverrides: {
+            root: {
+              '&.Mui-selected': {
+                color: p.primary,
+              },
+            },
+            label: {
+              fontFamily: displayFont,
+              fontSize: '0.7rem !important',
+            },
+          },
+        },
+        MuiLinearProgress: {
+          styleOverrides: {
+            root: {
+              borderRadius: 999,
+              height: 8,
+              bgcolor: p.divider,
+            },
+            bar: {
+              borderRadius: 999,
+              background: `linear-gradient(90deg, ${p.primary}, ${p.secondary})`,
             },
           },
         },

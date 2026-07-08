@@ -14,11 +14,13 @@ import NotFoundPage from './pages/NotFoundPage'
 import PageShell from './components/PageShell'
 import MuiAppProvider from './components/MuiAppProvider'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MuiAppProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={basename || undefined}>
         <PageShell>
           <Routes>
             <Route path="/" element={<HomePage />} />

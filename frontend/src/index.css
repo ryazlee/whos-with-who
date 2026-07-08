@@ -1,15 +1,16 @@
 :root {
-  --text: #6e6660;
-  --text-h: #2a2623;
-  --bg: #f6f4f1;
-  --border: #e5dfd8;
-  --code-bg: #ede9e4;
-  --accent: #b86a52;
-  --accent-bg: rgba(184, 106, 82, 0.1);
-  --accent-border: rgba(184, 106, 82, 0.22);
+  --text: #7a6b62;
+  --text-h: #2d2420;
+  --bg: #fff6ee;
+  --border: #f0e4d8;
+  --code-bg: #ffefe0;
+  --accent: #ff5c3a;
+  --accent-2: #ffd166;
+  --accent-bg: rgba(255, 92, 58, 0.12);
+  --accent-border: rgba(255, 92, 58, 0.25);
 
-  --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'Nunito', system-ui, -apple-system, sans-serif;
+  --display: 'Fredoka', 'Nunito', system-ui, sans-serif;
 
   font: 16px/1.5 var(--sans);
   color-scheme: light;
@@ -23,14 +24,15 @@
 
 html.theme-dark {
   color-scheme: dark;
-  --text: #a39d96;
-  --text-h: #f2eeea;
-  --bg: #121110;
-  --border: #2e2a27;
-  --code-bg: #242220;
-  --accent: #e8a48c;
-  --accent-bg: rgba(232, 164, 140, 0.1);
-  --accent-border: rgba(232, 164, 140, 0.22);
+  --text: #c4b0a4;
+  --text-h: #fff5ee;
+  --bg: #1a1412;
+  --border: #3d322c;
+  --code-bg: #2a221e;
+  --accent: #ff7a5c;
+  --accent-2: #ffd166;
+  --accent-bg: rgba(255, 122, 92, 0.14);
+  --accent-border: rgba(255, 122, 92, 0.28);
 }
 
 #root {
@@ -45,7 +47,7 @@ html.theme-dark {
 
 main {
   flex: 1 1 auto;
-  padding: 20px 16px 88px;
+  padding: 16px 14px 92px;
 }
 
 body {
@@ -56,19 +58,13 @@ body {
 .page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-}
-
-.pageIntro {
-  color: var(--text);
-  line-height: 1.55;
-  font-size: 0.9375rem;
+  gap: 16px;
 }
 
 .gameGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .gameGrid > * {
@@ -79,7 +75,17 @@ body {
 /* ---------- App shell ---------- */
 .appShell {
   min-height: 100svh;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255, 209, 102, 0.35) 0%, transparent 42%),
+    radial-gradient(circle at 88% 4%, rgba(255, 92, 58, 0.18) 0%, transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.12) 0%, transparent 50%);
+}
+
+html.theme-dark .appShell {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255, 209, 102, 0.08) 0%, transparent 42%),
+    radial-gradient(circle at 88% 4%, rgba(255, 122, 92, 0.1) 0%, transparent 38%);
 }
 
 .topBar {
@@ -89,23 +95,27 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(16px);
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border-bottom: 2px solid var(--border);
+  backdrop-filter: blur(14px);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   color: var(--text-h);
   font-family: var(--display);
   font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: -0.02em;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
   min-width: 0;
+}
+
+.brand span {
+  line-height: 1.1;
 }
 
 .bottomNavWrap {
