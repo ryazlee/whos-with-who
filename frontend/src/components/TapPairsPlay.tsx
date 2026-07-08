@@ -4,13 +4,13 @@ import type { MatchAllSelections } from '../datastore/types'
 import type { Person } from '../game/types'
 import {
   clearPerson,
-  isComplete,
   selectionsToTapPairAssigned,
   setPair,
   setSingle,
   tapPairsToSelections,
   type TapPairAssignment,
 } from '../game/pairMatching'
+import { PairingProgress } from './PairingUI'
 import PersonAvatar from './PersonAvatar'
 
 type Props = {
@@ -22,7 +22,6 @@ type Props = {
 
 export default function TapPairsPlay({ people, allowSingleChoice, selections, onChange }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dragSourceId, setDragSourceId] = useState<string | null>(null)
 
   const assigned = useMemo(
     () => selectionsToTapPairAssigned(people.map((p) => p.id), selections),
@@ -56,13 +55,6 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
     setSelectedId(null)
   }
 
-  function handleDrop(targetId: string) {
-    if (!dragSourceId || dragSourceId === targetId) return
-    pushAssigned(setPair(assigned, dragSourceId, targetId))
-    setDragSourceId(null)
-    setSelectedId(null)
-  }
-
   const pairs: Array<[Person, Person]> = []
   const singles: Person[] = []
   const unassigned: Person[] = []
@@ -87,17 +79,19 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
     }
   }
 
-  const complete = isComplete(
-    people.map((p) => p.id),
-    assigned,
-    allowSingleChoice,
-  )
+  const assignedCount = pairs.length * 2 + singles.length
 
   return (
     <Stack spacing={2}>
+      <PairingProgress
+        total={people.length}
+        assigned={assignedCount}
+        hint={selectedId ? `Pair with ${peopleById.get(selectedId)?.name}` : 'Tap one person, then their partner'}
+      />
+
       {pairs.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p">
+        <Box className="surfaceCard" sx={{ p: 1.5 }}>
+          <Typography className="section-label" component="p" sx={{ mb: 1 }}>
             Pairs
           </Typography>
           <Box
@@ -105,7 +99,6 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
               display: 'flex',
               flexWrap: 'wrap',
               gap: 2,
-              mt: 0.75,
               justifyContent: { xs: 'center', md: 'flex-start' },
             }}
           >
@@ -113,26 +106,20 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
               <Box key={a.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonAvatar
                   person={a}
-                  size={64}
+                  size={72}
                   paired
                   selected={selectedId === a.id}
-                  draggable
                   onClick={() => handleTap(a.id)}
-                  onDragStart={() => setDragSourceId(a.id)}
-                  onDrop={() => handleDrop(a.id)}
                 />
                 <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
                   ↔
                 </Typography>
                 <PersonAvatar
                   person={b}
-                  size={64}
+                  size={72}
                   paired
                   selected={selectedId === b.id}
-                  draggable
                   onClick={() => handleTap(b.id)}
-                  onDragStart={() => setDragSourceId(b.id)}
-                  onDrop={() => handleDrop(b.id)}
                 />
               </Box>
             ))}
@@ -141,30 +128,31 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
       ) : null}
 
       {singles.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p">
+        <Box className="surfaceCard" sx={{ p: 1.5 }}>
+          <Typography className="section-label" component="p" sx={{ mb: 1 }}>
             Single
           </Typography>
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
+              gridTemplateColumns: {
+                xs: 'repeat(auto-fill, minmax(96px, 1fr))',
+                md: 'repeat(auto-fill, minmax(108px, 120px))',
+              },
               gap: 1.5,
-              mt: 0.75,
-              maxWidth: { md: 640 },
+              maxWidth: { md: 480 },
+              mx: { md: 'auto' },
+              justifyContent: { md: 'center' },
             }}
           >
             {singles.map((p) => (
               <PersonAvatar
                 key={p.id}
                 person={p}
-                size={64}
+                size={76}
                 paired
                 selected={selectedId === p.id}
-                draggable
                 onClick={() => handleTap(p.id)}
-                onDragStart={() => setDragSourceId(p.id)}
-                onDrop={() => handleDrop(p.id)}
               />
             ))}
           </Box>
@@ -172,28 +160,30 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
       ) : null}
 
       {unassigned.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p">
-            {selectedId ? 'Tap to pair' : 'Tap or drag'}
+        <Box className="surfaceCard" sx={{ p: 1.5 }}>
+          <Typography className="section-label" component="p" sx={{ mb: 1 }}>
+            {selectedId ? `Tap ${peopleById.get(selectedId)?.name}'s partner` : 'Tap to pair'}
           </Typography>
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
+              gridTemplateColumns: {
+                xs: 'repeat(auto-fill, minmax(96px, 1fr))',
+                md: 'repeat(auto-fill, minmax(108px, 120px))',
+              },
               gap: 1.5,
-              mt: 0.75,
+              maxWidth: { md: 560 },
+              mx: { md: 'auto' },
+              justifyContent: { md: 'center' },
             }}
           >
             {unassigned.map((p) => (
               <PersonAvatar
                 key={p.id}
                 person={p}
-                size={72}
+                size={80}
                 selected={selectedId === p.id}
-                draggable
                 onClick={() => handleTap(p.id)}
-                onDragStart={() => setDragSourceId(p.id)}
-                onDrop={() => handleDrop(p.id)}
               />
             ))}
           </Box>
@@ -201,15 +191,19 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
       ) : null}
 
       {selectedId && allowSingleChoice ? (
-        <Button variant="outlined" size="small" onClick={handleMarkSingle} sx={{ alignSelf: 'flex-start', borderRadius: 2 }}>
-          Mark {peopleById.get(selectedId)?.name} as Single
+        <Button
+          variant="outlined"
+          onClick={handleMarkSingle}
+          fullWidth
+          sx={{ py: 1.1, borderStyle: 'dashed' }}
+        >
+          Mark {peopleById.get(selectedId)?.name} as single
         </Button>
       ) : null}
 
       {selectedId ? (
         <Button
           variant="text"
-          size="small"
           color="inherit"
           onClick={() => {
             const next = { ...assigned }
@@ -217,16 +211,11 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
             pushAssigned(next)
             setSelectedId(null)
           }}
-          sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
+          fullWidth
+          sx={{ color: 'text.secondary' }}
         >
-          Clear selection
+          Cancel selection
         </Button>
-      ) : null}
-
-      {!complete ? (
-        <Typography variant="caption" color="text.secondary">
-          Pair everyone{allowSingleChoice ? ' or mark singles' : ''} to submit.
-        </Typography>
       ) : null}
     </Stack>
   )

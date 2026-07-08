@@ -1,46 +1,31 @@
-import { Typography } from '@mui/material'
 import GameCard from '../components/GameCard'
 import GameGrid from '../components/GameGrid'
-import { MOCK_GAMES } from '../game/mockGames'
+import PageError from '../components/PageError'
+import PageHeader from '../components/PageHeader'
+import PageLoading from '../components/PageLoading'
+import { usePopularGames } from '../hooks/useGame'
 
 export default function SearchPage() {
-  const publicGames = MOCK_GAMES.filter((g) => g.visibility === 'public')
+  const { games, loading, error } = usePopularGames()
 
   return (
     <div className="page">
-      <div>
-        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-          Search
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Browse public games.
-        </Typography>
-      </div>
+      <PageHeader
+        title="Browse"
+        subtitle="Public games you can play right now."
+      />
 
-      <GameGrid>
-        {publicGames.map((g) => (
-          <GameCard
-            key={g.id}
-            compact
-            game={{
-              id: g.id,
-              title: g.title,
-              description: g.description,
-              tags: g.tags,
-              visibility: g.visibility,
-              attemptCount: g.attemptCount,
-              peopleCount: g.people.length,
-              ownerMatchingMode: g.ownerMatchingMode,
-              modeLocked: g.modeLocked,
-              previewPeople: g.people.slice(0, 5).map((p) => ({
-                id: p.id,
-                name: p.name,
-                imageUrl: p.imageUrl,
-              })),
-            }}
-          />
-        ))}
-      </GameGrid>
+      {loading ? (
+        <PageLoading />
+      ) : error ? (
+        <PageError message={error} />
+      ) : (
+        <GameGrid>
+          {games.map((g) => (
+            <GameCard key={g.id} compact game={g} />
+          ))}
+        </GameGrid>
+      )}
     </div>
   )
 }

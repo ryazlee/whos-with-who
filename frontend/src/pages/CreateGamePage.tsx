@@ -10,7 +10,8 @@ import {
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import { useEffect, useMemo, useState } from 'react'
-import MatchingModeChip from '../components/MatchingModeChip'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
 import PersonPhotoUpload from '../components/PersonPhotoUpload'
 import RelationshipEditor, {
   type DraftPerson,
@@ -20,11 +21,23 @@ import RelationshipEditor, {
   syncRelationshipsForPeople,
 } from '../components/RelationshipEditor'
 import type { MatchingMode } from '../game/matchingModes'
-import { MATCHING_MODE_LABELS, MATCHING_MODES } from '../game/matchingModes'
+import { MATCHING_MODE_LABELS } from '../game/matchingModes'
+import MatchingModePicker from '../components/MatchingModePicker'
 
 function makeId() {
   return `person_${Math.random().toString(36).slice(2, 9)}`
 }
+
+const pillSx = (active: boolean) => ({
+  height: 32,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+  borderRadius: '99px',
+  border: '1px solid',
+  borderColor: active ? 'primary.main' : 'divider',
+  bgcolor: active ? 'primary.main' : 'transparent',
+  color: active ? 'primary.contrastText' : 'text.secondary',
+})
 
 export default function CreateGamePage() {
   const [title, setTitle] = useState('')
@@ -68,126 +81,131 @@ export default function CreateGamePage() {
 
   return (
     <div className="page">
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-          Create game
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Add photos, names, and the real couples.
-        </Typography>
-      </Box>
-
-      <TextField
-        label="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        fullWidth
-        size="small"
-        placeholder="Friend group"
+      <PageHeader
+        title="Create"
+        subtitle="Add photos, names, and who is actually with who."
       />
 
-      <Box>
-        <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-          Matching mode
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.35 }}>
-          {MATCHING_MODES.map((mode) => {
-            const active = ownerMatchingMode === mode
-            return (
-              <Chip
-                key={mode}
-                label={MATCHING_MODE_LABELS[mode]}
-                size="small"
-                onClick={() => setOwnerMatchingMode(mode)}
-                sx={{
-                  height: 28,
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  borderRadius: '99px',
-                  border: '1px solid',
-                  borderColor: active ? 'primary.main' : 'divider',
-                  bgcolor: active ? 'primary.main' : 'background.paper',
-                  color: active ? 'primary.contrastText' : 'text.secondary',
-                }}
-              />
-            )
-          })}
-          <Chip
-            label={modeLocked ? 'Locked' : 'Unlocked'}
-            size="small"
-            onClick={() => setModeLocked((v) => !v)}
-            sx={{
-              height: 28,
-              fontSize: '0.8rem',
-              fontWeight: 500,
-              borderRadius: '99px',
-              border: '1px solid',
-              borderColor: modeLocked ? 'primary.main' : 'divider',
-              bgcolor: modeLocked ? 'primary.main' : 'background.paper',
-              color: modeLocked ? 'primary.contrastText' : 'text.secondary',
-            }}
+      <SectionCard title="Details">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { md: '1fr 1fr' },
+            gap: { md: 2 },
+          }}
+        >
+          <TextField
+            label="Game title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            fullWidth
+            placeholder="Friend group reunion"
+            sx={{ mb: { xs: 2, md: 0 }, gridColumn: { md: '1 / -1' } }}
           />
-        </Box>
-        <Box sx={{ mt: 1 }}>
-          <MatchingModeChip mode={ownerMatchingMode} />
-        </Box>
-      </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography className="section-label" component="p">
-          People
-        </Typography>
-        <IconButton size="small" onClick={addPerson} aria-label="Add person">
-          <AddOutlinedIcon fontSize="small" />
-        </IconButton>
-      </Box>
-
-      <Stack spacing={2}>
-        {people.map((person) => (
-          <Box key={person.id} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-            <PersonPhotoUpload
-              value={person.photoDataUrl}
-              onChange={(photoDataUrl) => updatePerson(person.id, { photoDataUrl })}
-              required
-            />
-            <TextField
-              label="Name"
-              value={person.name}
-              onChange={(e) => updatePerson(person.id, { name: e.target.value })}
-              fullWidth
-              size="small"
-              required
-            />
-            <IconButton
-              size="small"
-              onClick={() => removePerson(person.id)}
-              disabled={people.length <= 2}
-              sx={{ mt: 0.5 }}
-              aria-label="Remove"
-            >
-              <DeleteOutlineOutlinedIcon fontSize="small" />
-            </IconButton>
+          <Box>
+            <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
+              How players match
+            </Typography>
+            <MatchingModePicker value={ownerMatchingMode} onChange={setOwnerMatchingMode} />
+            <Box sx={{ mt: 1.25, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              <Chip
+                label={modeLocked ? 'Mode locked for players' : 'Players can switch mode'}
+                size="small"
+                onClick={() => setModeLocked((v) => !v)}
+                sx={pillSx(modeLocked)}
+              />
+            </Box>
           </Box>
-        ))}
-      </Stack>
 
-      <Box>
-        <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-          Couples (answer key)
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Who is actually with who? Pick a partner or Single for each person.
-          {hasSingles(relationships) ? ' Singles are allowed in this game.' : null}
-        </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.45 }}>
+              {MATCHING_MODE_LABELS[ownerMatchingMode]} — tap photos or pick from a list.
+            </Typography>
+          </Box>
+        </Box>
+      </SectionCard>
+
+      <SectionCard
+        title="People"
+        subtitle="Photo and name required for each person"
+        noPadding
+      >
+        <Stack spacing={0} divider={<Box sx={{ borderTop: 1, borderColor: 'divider' }} />}>
+          {people.map((person, index) => (
+            <Box
+              key={person.id}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1.25, sm: 1.5 },
+                alignItems: { xs: 'stretch', sm: 'flex-start' },
+                px: 2,
+                py: 1.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <PersonPhotoUpload
+                  value={person.photoDataUrl}
+                  onChange={(photoDataUrl) => updatePerson(person.id, { photoDataUrl })}
+                  required
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                  Person {index + 1}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flex: 1, alignItems: 'flex-start' }}>
+                <TextField
+                  label="Name"
+                  value={person.name}
+                  onChange={(e) => updatePerson(person.id, { name: e.target.value })}
+                  fullWidth
+                  placeholder="Alex"
+                  required
+                />
+                <IconButton
+                  onClick={() => removePerson(person.id)}
+                  disabled={people.length <= 2}
+                  aria-label="Remove person"
+                  sx={{ mt: 0.5, flexShrink: 0 }}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Box>
+          ))}
+        </Stack>
+        <Box sx={{ px: 2, pb: 2, pt: 1 }}>
+          <Button
+            startIcon={<AddOutlinedIcon />}
+            onClick={addPerson}
+            variant="outlined"
+            fullWidth
+            sx={{ py: 1.1, borderStyle: 'dashed' }}
+          >
+            Add person
+          </Button>
+        </Box>
+      </SectionCard>
+
+      <SectionCard
+        title="Answer key"
+        subtitle="The real couples — players try to match these"
+      >
+        {hasSingles(relationships) ? (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+            Singles are allowed in this game.
+          </Typography>
+        ) : null}
         <RelationshipEditor
           people={people}
           relationships={relationships}
           onChange={setRelationships}
         />
-      </Box>
+      </SectionCard>
 
-      <Button variant="contained" color="primary" fullWidth disabled={!canPublish}>
-        Publish
+      <Button variant="contained" color="primary" fullWidth size="large" disabled={!canPublish} sx={{ py: 1.35 }}>
+        {canPublish ? 'Publish game' : 'Fill in all fields to publish'}
       </Button>
     </div>
   )

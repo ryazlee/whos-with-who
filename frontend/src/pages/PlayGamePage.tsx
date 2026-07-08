@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Button, Stack } from '@mui/material'
+import { Button, Stack } from '@mui/material'
 import { Navigate, useParams } from 'react-router-dom'
 import type { MatchAllSelections } from '../datastore/types'
+import EmailCodeLogin from '../components/EmailCodeLogin'
 import MatchAllPlay from '../components/MatchAllPlay'
 import { MatchingModeBar } from '../components/MatchingModePicker'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
+import SectionCard from '../components/SectionCard'
+import StickyActionBar from '../components/StickyActionBar'
 import TapPairsPlay from '../components/TapPairsPlay'
+import { useAuth } from '../contexts/AuthContext'
 import type { MatchingMode } from '../game/matchingModes'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
-import { getCompletedAttemptForGame } from '../lib/localAttempts'
-import { useGameForPlay, useSubmitMatchAllAttempt } from '../hooks/useGame'
+import { useGameForPlay, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
+import { isSupabaseEnabled } from '../services/gameService'
 
 function emptySelections(_mode: MatchingMode): MatchAllSelections {
   return {}
@@ -29,7 +33,10 @@ export default function PlayGamePage() {
   const { id } = useParams<{ id: string }>()
   const gameId = id ?? 'demo'
 
-  const completed = useMemo(() => getCompletedAttemptForGame(gameId), [gameId])
+  const { user, loading: authLoading } = useAuth()
+  const needsAuth = isSupabaseEnabled && !user
+
+  const { attempt: completedAttempt, loading: attemptLoading } = useMyGameAttempt(gameId)
 
   const { game, loading, error } = useGameForPlay(gameId)
   const submitAttempt = useSubmitMatchAllAttempt()
@@ -54,8 +61,12 @@ export default function PlayGamePage() {
     setSelections(emptySelections(activeMode))
   }, [activeMode]) // eslint-disable-line react-hooks/exhaustive-deps -- reset picks when switching mode
 
-  if (completed) {
-    return <Navigate to={`/attempt/${completed.attemptId}/result`} replace />
+  if (attemptLoading || (isSupabaseEnabled && authLoading)) {
+    return <div className="page"><PageLoading /></div>
+  }
+
+  if (completedAttempt) {
+    return <Navigate to={`/attempt/${completedAttempt.attemptId}/result`} replace />
   }
 
   if (loading) return <div className="page"><PageLoading /></div>
@@ -71,15 +82,19 @@ export default function PlayGamePage() {
   const submitReady = canSubmit(activeMode, peopleIds, selections, allowSingleChoice)
 
   return (
-    <div className="page">
+    <div className="page page--withActionBar">
       <Stack spacing={2}>
+        {needsAuth ? (
+          <SectionCard title="Sign in to submit" subtitle="We'll email you a one-time code. You can still match below.">
+            <EmailCodeLogin compact />
+          </SectionCard>
+        ) : null}
+
         <MatchingModeBar
           ownerMode={game.ownerMatchingMode}
           modeLocked={game.modeLocked}
           activeMode={activeMode}
-          onModeChange={(mode) => {
-            setActiveMode(mode)
-          }}
+          onModeChange={setActiveMode}
         />
 
         {activeMode === 'tap_pairs' ? (
@@ -99,19 +114,34 @@ export default function PlayGamePage() {
         )}
       </Stack>
 
-      <Box sx={{ position: 'sticky', bottom: { xs: 80, md: 24 }, pt: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          disabled={submitAttempt.isPending || !submitReady}
-          onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
-          sx={{ py: 1.4, fontSize: '1.05rem' }}
-        >
-          {submitAttempt.isPending ? '…' : 'Submit'}
-        </Button>
-      </Box>
+      <StickyActionBar>
+        <div className="stickyActionBarInner playSubmitDock">
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            disabled={submitAttempt.isPending || !submitReady || needsAuth}
+            onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
+            sx={{
+              py: 1.35,
+              fontSize: '1rem',
+              fontWeight: 600,
+              maxWidth: { md: 420 },
+              mx: { md: 'auto' },
+              display: { md: 'block' },
+            }}
+          >
+            {submitAttempt.isPending
+              ? 'Submitting…'
+              : needsAuth
+                ? 'Sign in to submit'
+                : submitReady
+                  ? 'Submit answers'
+                  : 'Match everyone first'}
+          </Button>
+        </div>
+      </StickyActionBar>
     </div>
   )
 }

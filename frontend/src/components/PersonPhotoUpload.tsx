@@ -35,18 +35,18 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
   }
 
   return (
-    <Box sx={{ flexShrink: 0, width: 72 }}>
+    <Box sx={{ flexShrink: 0, width: { xs: 72, sm: 72 } }}>
       {value ? (
         <Box>
-          <Box sx={{ position: 'relative', width: 56, height: 56 }}>
+          <Box sx={{ position: 'relative', width: 64, height: 64 }}>
             <Box
               component="img"
               src={value}
               alt=""
               onClick={() => inputRef.current?.click()}
               sx={{
-                width: 56,
-                height: 56,
+                width: 64,
+                height: 64,
                 objectFit: 'cover',
                 borderRadius: 2,
                 border: '1px solid',
@@ -55,31 +55,30 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
               }}
             />
             <IconButton
-              size="small"
               onClick={(e) => {
                 e.stopPropagation()
                 onChange(null)
               }}
-              aria-label="Remove"
+              aria-label="Remove photo"
               sx={{
                 position: 'absolute',
-                top: -6,
-                right: -6,
-                width: 22,
-                height: 22,
+                top: -8,
+                right: -8,
+                width: 28,
+                height: 28,
                 bgcolor: 'background.paper',
                 border: '1px solid',
                 borderColor: 'divider',
               }}
             >
-              <CloseOutlinedIcon sx={{ fontSize: 14 }} />
+              <CloseOutlinedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
           <Button
             size="small"
             variant="text"
             onClick={() => setBlurOpen(true)}
-            sx={{ mt: 0.25, px: 0, minWidth: 0, fontSize: '0.7rem', fontWeight: 500 }}
+            sx={{ mt: 0.35, px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500 }}
           >
             Blur faces
           </Button>
@@ -89,14 +88,14 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
           onClick={() => inputRef.current?.click()}
           aria-label="Add photo"
           sx={{
-            width: 56,
-            height: 56,
+            width: 64,
+            height: 64,
             borderRadius: 2,
             border: '1px dashed',
             borderColor: required ? 'error.light' : 'divider',
           }}
         >
-          <PhotoCameraOutlinedIcon fontSize="small" color="primary" />
+          <PhotoCameraOutlinedIcon />
         </IconButton>
       )}
 

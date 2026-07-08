@@ -68,10 +68,12 @@ export default function PersonAvatar({
           width: size,
           height: size,
           objectFit: 'cover',
-          borderRadius: 1.25,
-          border: '1px solid',
-          borderColor: selected ? 'text.primary' : paired ? 'divider' : 'divider',
-          boxShadow: 'none',
+          borderRadius: 1.5,
+          border: '2px solid',
+          borderColor: selected ? 'primary.main' : paired ? 'divider' : 'divider',
+          opacity: paired ? 0.85 : 1,
+          transition: 'border-color 0.15s, transform 0.1s',
+          transform: selected ? 'scale(1.04)' : 'none',
         }}
       />
       <Typography

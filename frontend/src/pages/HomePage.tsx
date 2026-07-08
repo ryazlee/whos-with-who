@@ -1,4 +1,5 @@
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
+import PageHeader from '../components/PageHeader'
 import GameCard from '../components/GameCard'
 import GameGrid from '../components/GameGrid'
 import PageError from '../components/PageError'
@@ -13,14 +14,10 @@ export default function HomePage() {
 
   return (
     <div className="page">
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-          Who&apos;s With Who?
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Guess the couples. One try per game.
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Play"
+        subtitle="Guess the couples — one try per game."
+      />
 
       {dailyLoading ? (
         <PageLoading />
@@ -30,16 +27,11 @@ export default function HomePage() {
         <GameCard game={daily.game} featured dailyDate={daily.date} />
       ) : null}
 
-      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+      {feedGames.length > 0 || gamesLoading ? (
         <Typography className="section-label" component="p">
           More games
         </Typography>
-        {!gamesLoading && feedGames.length > 0 ? (
-          <Typography variant="caption" color="text.secondary">
-            {feedGames.length}
-          </Typography>
-        ) : null}
-      </Box>
+      ) : null}
 
       {gamesLoading ? (
         <PageLoading />

@@ -13,6 +13,7 @@ import MePage from './pages/MePage'
 import NotFoundPage from './pages/NotFoundPage'
 import PageShell from './components/PageShell'
 import MuiAppProvider from './components/MuiAppProvider'
+import { AuthProvider } from './contexts/AuthContext'
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
 
@@ -20,9 +21,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MuiAppProvider>
-        <BrowserRouter basename={basename || undefined}>
-        <PageShell>
-          <Routes>
+        <AuthProvider>
+          <BrowserRouter basename={basename || undefined}>
+          <PageShell>
+            <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/game/:id" element={<GameLobbyPage />} />
@@ -36,6 +38,7 @@ function App() {
           </Routes>
         </PageShell>
         </BrowserRouter>
+        </AuthProvider>
       </MuiAppProvider>
     </QueryClientProvider>
   )

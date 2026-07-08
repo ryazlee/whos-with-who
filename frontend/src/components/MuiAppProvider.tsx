@@ -109,7 +109,23 @@ export default function MuiAppProvider({ children }: PropsWithChildren) {
             root: {
               borderRadius: 10,
               boxShadow: 'none',
+              minHeight: 44,
+              '@media (min-width: 768px)': {
+                minHeight: 40,
+              },
               '&:hover': { boxShadow: 'none', opacity: 0.9 },
+            },
+          },
+        },
+        MuiIconButton: {
+          styleOverrides: {
+            root: {
+              width: 44,
+              height: 44,
+              '@media (min-width: 768px)': {
+                width: 36,
+                height: 36,
+              },
             },
           },
         },

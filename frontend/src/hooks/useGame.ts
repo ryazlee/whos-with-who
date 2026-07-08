@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import type { MatchAllSelections } from '../datastore/types'
 import { getOrCreateDisplayName } from '../lib/displayName'
+import { useAuth } from '../contexts/AuthContext'
 import {
   getAttemptResult,
   getDailyChallenge,
@@ -115,12 +116,13 @@ export function useAttemptResult(attemptId: string) {
 export function useSubmitMatchAllAttempt() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: (args: { gameId: string; selections: MatchAllSelections }) =>
       submitMatchAllAttempt({
         ...args,
-        displayNameSnapshot: getOrCreateDisplayName(),
+        displayNameSnapshot: user?.email ?? getOrCreateDisplayName(),
       }),
     onSuccess: (attempt) => {
       queryClient.setQueryData(queryKeys.attemptResult(attempt.attemptId), attempt)

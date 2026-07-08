@@ -7,9 +7,13 @@ import type {
   MatchAllSelections,
 } from '../datastore/types'
 import { mockDatastore } from '../datastore/mockDatastore'
+import { supabaseDatastore } from '../datastore/supabaseDatastore'
 import type { WhoWithWhoDatastore } from '../datastore/WhoWithWhoDatastore'
+import { supabase } from '../lib/supabaseClient'
 
-const datastore: WhoWithWhoDatastore = mockDatastore
+export const isSupabaseEnabled = Boolean(supabase)
+
+const datastore: WhoWithWhoDatastore = isSupabaseEnabled ? supabaseDatastore : mockDatastore
 
 export async function listPopularGames(): Promise<GameSummary[]> {
   return datastore.listPopularGames()

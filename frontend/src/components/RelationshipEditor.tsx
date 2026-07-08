@@ -1,4 +1,13 @@
-import { Box, Button, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
+import {
+  PairingProgress,
+  PairingSection,
+  PairResultRow,
+  PartnerPickerRow,
+  RemainingPeopleRow,
+  SingleResultRow,
+  type PairingPerson,
+} from './PairingUI'
 
 export type DraftPerson = {
   id: string
@@ -8,6 +17,10 @@ export type DraftPerson = {
 
 /** undefined = not set yet, null = single, string = partner id */
 export type DraftRelationships = Record<string, string | null | undefined>
+
+function toPairingPerson(p: DraftPerson): PairingPerson {
+  return { id: p.id, name: p.name.trim(), imageUrl: p.photoDataUrl }
+}
 
 export function syncRelationshipsForPeople(
   people: DraftPerson[],
@@ -128,6 +141,8 @@ type Props = {
 
 export default function RelationshipEditor({ people, relationships, onChange }: Props) {
   const { named, unassigned, singles, pairs } = partitionPeople(people, relationships)
+  const assignedCount = pairs.length * 2 + singles.length
+  const unassignedPeople = unassigned.map(toPairingPerson)
 
   if (named.length < 2) {
     return (
@@ -139,116 +154,64 @@ export default function RelationshipEditor({ people, relationships, onChange }: 
 
   return (
     <Stack spacing={2}>
+      <PairingProgress
+        total={named.length}
+        assigned={assignedCount}
+        hint="Set each person's partner or mark them single"
+      />
+
+      {unassigned.length > 0 ? (
+        <PairingSection
+          title={unassigned.length === 1 ? 'Last person' : 'Match people'}
+          subtitle="Pick a partner — they'll both leave this list"
+        >
+          {unassigned.length > 1 ? (
+            <Box sx={{ px: 1.5, py: 1.1 }}>
+              <RemainingPeopleRow people={unassignedPeople} />
+            </Box>
+          ) : null}
+          {unassigned.map((person) => {
+            const options = unassigned
+              .filter((p) => p.id !== person.id)
+              .map(toPairingPerson)
+
+            return (
+              <PartnerPickerRow
+                key={person.id}
+                person={toPairingPerson(person)}
+                options={options}
+                allowSingle
+                value=""
+                onSelect={(partnerId) => onChange(setPartner(relationships, person.id, partnerId))}
+              />
+            )
+          })}
+        </PairingSection>
+      ) : null}
+
       {pairs.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-            Pairs
-          </Typography>
-          <Stack spacing={0} divider={<Box sx={{ borderBottom: 1, borderColor: 'divider' }} />}>
-            {pairs.map(([a, b]) => (
-              <Box
-                key={a.id}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.85, gap: 1 }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {a.name} ↔ {b.name}
-                </Typography>
-                <Button
-                  size="small"
-                  color="inherit"
-                  onClick={() => onChange(unpair(relationships, a.id, b.id))}
-                  sx={{ flexShrink: 0, fontSize: '0.8rem' }}
-                >
-                  Unpair
-                </Button>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
+        <PairingSection title="Couples" subtitle={`${pairs.length} pair${pairs.length === 1 ? '' : 's'}`}>
+          {pairs.map(([a, b]) => (
+            <PairResultRow
+              key={a.id}
+              left={toPairingPerson(a)}
+              right={toPairingPerson(b)}
+              onUnpair={() => onChange(unpair(relationships, a.id, b.id))}
+            />
+          ))}
+        </PairingSection>
       ) : null}
 
       {singles.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-            Single
-          </Typography>
-          <Stack spacing={0} divider={<Box sx={{ borderBottom: 1, borderColor: 'divider' }} />}>
-            {singles.map((p) => (
-              <Box
-                key={p.id}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.85, gap: 1 }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {p.name}
-                </Typography>
-                <Button
-                  size="small"
-                  color="inherit"
-                  onClick={() => onChange(unassignSingle(relationships, p.id))}
-                  sx={{ flexShrink: 0, fontSize: '0.8rem' }}
-                >
-                  Change
-                </Button>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
-      ) : null}
-
-      {unassigned.length > 0 ? (
-        <Box>
-          <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-            {unassigned.length === 1 ? 'Last person' : 'Set couples'}
-          </Typography>
-          <Stack spacing={1.25}>
-            {unassigned.map((person) => {
-              const options = unassigned.filter((p) => p.id !== person.id)
-
-              return (
-                <Box
-                  key={person.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    py: 0.75,
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 72, flexShrink: 0 }}>
-                    {person.name}
-                  </Typography>
-                  <FormControl fullWidth size="small" variant="standard">
-                    <Select
-                      value=""
-                      displayEmpty
-                      disableUnderline
-                      onChange={(e) => {
-                        const v = e.target.value
-                        if (!v) return
-                        onChange(setPartner(relationships, person.id, v === 'single' ? null : v))
-                      }}
-                      renderValue={() => (
-                        <Typography variant="body2" color="text.secondary">
-                          Pick partner…
-                        </Typography>
-                      )}
-                      sx={{ fontSize: '0.875rem' }}
-                    >
-                      <MenuItem value="single">Single</MenuItem>
-                      {options.map((p) => (
-                        <MenuItem key={p.id} value={p.id}>
-                          {p.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              )
-            })}
-          </Stack>
-        </Box>
+        <PairingSection title="Single">
+          {singles.map((p) => (
+            <SingleResultRow
+              key={p.id}
+              person={toPairingPerson(p)}
+              onChange={() => onChange(unassignSingle(relationships, p.id))}
+            />
+          ))}
+        </PairingSection>
       ) : null}
 
       {unassigned.length === 0 && pairs.length === 0 && singles.length === 0 ? (
