@@ -17,6 +17,7 @@ import {
   applyAllBlurRegions,
   computeImageLayout,
   drawImageToCanvas,
+  loadImageFromDataUrl,
   loadImageFromFile,
   pointerToCanvasCoords,
 } from '../lib/imageBlur'
@@ -26,13 +27,14 @@ const MAX_H = 480
 const DEFAULT_BRUSH = 44
 
 type Props = {
-  file: File
+  file?: File
+  dataUrl?: string
   open: boolean
   onClose: () => void
   onComplete: (result: { dataUrl: string; blob: Blob }) => void
 }
 
-export default function FaceBlurEditor({ file, open, onClose, onComplete }: Props) {
+export default function FaceBlurEditor({ file, dataUrl, open, onClose, onComplete }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const workCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const imageRef = useRef<HTMLImageElement | null>(null)
@@ -64,13 +66,16 @@ export default function FaceBlurEditor({ file, open, onClose, onComplete }: Prop
 
   useEffect(() => {
     if (!open) return
+    if (!file && !dataUrl) return
 
     let cancelled = false
     setLoading(true)
     setError(null)
     setRegions([])
 
-    void loadImageFromFile(file)
+    const load = file ? loadImageFromFile(file) : loadImageFromDataUrl(dataUrl!)
+
+    void load
       .then((image) => {
         if (cancelled) return
         imageRef.current = image
@@ -91,7 +96,7 @@ export default function FaceBlurEditor({ file, open, onClose, onComplete }: Prop
     return () => {
       cancelled = true
     }
-  }, [file, open])
+  }, [file, dataUrl, open])
 
   function addBlurAt(clientX: number, clientY: number) {
     const canvas = canvasRef.current

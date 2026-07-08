@@ -1,7 +1,8 @@
-import { Box, IconButton } from '@mui/material'
+import { Box, Button, IconButton, Typography } from '@mui/material'
 import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import { useRef, useState } from 'react'
+import { fileToDataUrl } from '../lib/fileImage'
 import FaceBlurEditor from './FaceBlurEditor'
 
 type Props = {
@@ -12,53 +13,76 @@ type Props = {
 
 export default function PersonPhotoUpload({ value, onChange, required }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
-  const [editorOpen, setEditorOpen] = useState(false)
+  const [blurOpen, setBlurOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file?.type.startsWith('image/')) return
-    setPendingFile(file)
-    setEditorOpen(true)
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Pick an image file')
+      return
+    }
+
+    setError(null)
+    try {
+      const dataUrl = await fileToDataUrl(file)
+      onChange(dataUrl)
+    } catch {
+      setError('Could not load image')
+    }
   }
 
   return (
-    <Box sx={{ flexShrink: 0 }}>
+    <Box sx={{ flexShrink: 0, width: 72 }}>
       {value ? (
-        <Box sx={{ position: 'relative', width: 56, height: 56 }}>
-          <Box
-            component="img"
-            src={value}
-            alt=""
-            onClick={() => inputRef.current?.click()}
-            sx={{
-              width: 56,
-              height: 56,
-              objectFit: 'cover',
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: 'divider',
-              cursor: 'pointer',
-            }}
-          />
-          <IconButton
+        <Box>
+          <Box sx={{ position: 'relative', width: 56, height: 56 }}>
+            <Box
+              component="img"
+              src={value}
+              alt=""
+              onClick={() => inputRef.current?.click()}
+              sx={{
+                width: 56,
+                height: 56,
+                objectFit: 'cover',
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                cursor: 'pointer',
+              }}
+            />
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation()
+                onChange(null)
+              }}
+              aria-label="Remove"
+              sx={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                width: 22,
+                height: 22,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <CloseOutlinedIcon sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Box>
+          <Button
             size="small"
-            onClick={() => onChange(null)}
-            aria-label="Remove"
-            sx={{
-              position: 'absolute',
-              top: -6,
-              right: -6,
-              width: 22,
-              height: 22,
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
+            variant="text"
+            onClick={() => setBlurOpen(true)}
+            sx={{ mt: 0.25, px: 0, minWidth: 0, fontSize: '0.7rem', fontWeight: 500 }}
           >
-            <CloseOutlinedIcon sx={{ fontSize: 14 }} />
-          </IconButton>
+            Blur faces
+          </Button>
         </Box>
       ) : (
         <IconButton
@@ -76,20 +100,22 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
         </IconButton>
       )}
 
-      <input ref={inputRef} type="file" accept="image/*" hidden onChange={handleFilePick} />
+      {error ? (
+        <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.25, fontSize: '0.65rem' }}>
+          {error}
+        </Typography>
+      ) : null}
 
-      {pendingFile ? (
+      <input ref={inputRef} type="file" accept="image/*" hidden onChange={(e) => void handleFilePick(e)} />
+
+      {value && blurOpen ? (
         <FaceBlurEditor
-          file={pendingFile}
-          open={editorOpen}
-          onClose={() => {
-            setEditorOpen(false)
-            setPendingFile(null)
-          }}
+          dataUrl={value}
+          open={blurOpen}
+          onClose={() => setBlurOpen(false)}
           onComplete={({ dataUrl }) => {
             onChange(dataUrl)
-            setPendingFile(null)
-            setEditorOpen(false)
+            setBlurOpen(false)
           }}
         />
       ) : null}

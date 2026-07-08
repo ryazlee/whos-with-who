@@ -41,6 +41,15 @@ export function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   })
 }
 
+export function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Could not load image'))
+    img.src = dataUrl
+  })
+}
+
 export function drawImageToCanvas(
   canvas: HTMLCanvasElement,
   image: HTMLImageElement,

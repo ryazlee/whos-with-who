@@ -9,17 +9,18 @@ import {
 } from '@mui/material'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import MatchingModeChip from '../components/MatchingModeChip'
 import PersonPhotoUpload from '../components/PersonPhotoUpload'
+import RelationshipEditor, {
+  type DraftPerson,
+  type DraftRelationships,
+  hasSingles,
+  relationshipsComplete,
+  syncRelationshipsForPeople,
+} from '../components/RelationshipEditor'
 import type { MatchingMode } from '../game/matchingModes'
 import { MATCHING_MODE_LABELS, MATCHING_MODES } from '../game/matchingModes'
-
-type DraftPerson = {
-  id: string
-  name: string
-  photoDataUrl: string | null
-}
 
 function makeId() {
   return `person_${Math.random().toString(36).slice(2, 9)}`
@@ -31,7 +32,13 @@ export default function CreateGamePage() {
   const [modeLocked, setModeLocked] = useState(false)
   const [people, setPeople] = useState<DraftPerson[]>([
     { id: makeId(), name: '', photoDataUrl: null },
+    { id: makeId(), name: '', photoDataUrl: null },
   ])
+  const [relationships, setRelationships] = useState<DraftRelationships>({})
+
+  useEffect(() => {
+    setRelationships((prev) => syncRelationshipsForPeople(people, prev))
+  }, [people])
 
   function updatePerson(id: string, patch: Partial<DraftPerson>) {
     setPeople((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)))
@@ -42,17 +49,34 @@ export default function CreateGamePage() {
   }
 
   function removePerson(id: string) {
-    setPeople((prev) => (prev.length <= 1 ? prev : prev.filter((p) => p.id !== id)))
+    setPeople((prev) => {
+      if (prev.length <= 2) return prev
+      const next = prev.filter((p) => p.id !== id)
+      setRelationships((rel) => syncRelationshipsForPeople(next, rel))
+      return next
+    })
   }
+
+  const relationshipsReady = relationshipsComplete(people, relationships)
 
   const canPublish = useMemo(() => {
     if (!title.trim()) return false
     if (people.length < 2) return false
-    return people.every((p) => p.name.trim() && p.photoDataUrl)
-  }, [title, people])
+    if (!people.every((p) => p.name.trim() && p.photoDataUrl)) return false
+    return relationshipsReady
+  }, [title, people, relationshipsReady])
 
   return (
     <div className="page">
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+          Create game
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Add photos, names, and the real couples.
+        </Typography>
+      </Box>
+
       <TextField
         label="Title"
         value={title}
@@ -137,7 +161,7 @@ export default function CreateGamePage() {
             <IconButton
               size="small"
               onClick={() => removePerson(person.id)}
-              disabled={people.length <= 1}
+              disabled={people.length <= 2}
               sx={{ mt: 0.5 }}
               aria-label="Remove"
             >
@@ -147,13 +171,22 @@ export default function CreateGamePage() {
         ))}
       </Stack>
 
-      <Button
-        variant="contained"
-        color="primary"
-        fullWidth
-        disabled={!canPublish}
-        sx={{ borderRadius: 2, py: 1.5 }}
-      >
+      <Box>
+        <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
+          Couples (answer key)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Who is actually with who? Pick a partner or Single for each person.
+          {hasSingles(relationships) ? ' Singles are allowed in this game.' : null}
+        </Typography>
+        <RelationshipEditor
+          people={people}
+          relationships={relationships}
+          onChange={setRelationships}
+        />
+      </Box>
+
+      <Button variant="contained" color="primary" fullWidth disabled={!canPublish}>
         Publish
       </Button>
     </div>
