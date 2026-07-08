@@ -100,9 +100,17 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           <Typography className="section-label" component="p">
             Pairs
           </Typography>
-          <Stack spacing={1.5} sx={{ mt: 0.75 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 2,
+              mt: 0.75,
+              justifyContent: { xs: 'center', md: 'flex-start' },
+            }}
+          >
             {pairs.map(([a, b]) => (
-              <Box key={a.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <Box key={a.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonAvatar
                   person={a}
                   size={64}
@@ -128,7 +136,7 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
                 />
               </Box>
             ))}
-          </Stack>
+          </Box>
         </Box>
       ) : null}
 
@@ -137,7 +145,15 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           <Typography className="section-label" component="p">
             Single
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.75 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
+              gap: 1.5,
+              mt: 0.75,
+              maxWidth: { md: 640 },
+            }}
+          >
             {singles.map((p) => (
               <PersonAvatar
                 key={p.id}
@@ -160,7 +176,14 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           <Typography className="section-label" component="p">
             {selectedId ? 'Tap to pair' : 'Tap or drag'}
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.75 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
+              gap: 1.5,
+              mt: 0.75,
+            }}
+          >
             {unassigned.map((p) => (
               <PersonAvatar
                 key={p.id}

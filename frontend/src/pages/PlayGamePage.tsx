@@ -114,7 +114,7 @@ export default function PlayGamePage() {
         )}
       </Stack>
 
-      <Box sx={{ position: 'sticky', bottom: 80, pt: 2 }}>
+      <Box sx={{ position: 'sticky', bottom: { xs: 80, md: 24 }, pt: 2 }}>
         <Button
           variant="contained"
           color="primary"

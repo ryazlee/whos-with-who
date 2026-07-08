@@ -42,24 +42,41 @@ export default function PageShell({ children }: Props) {
   return (
     <div className="appShell">
       <header className="topBar">
-        <Link to="/" className="brand">
-          <OwlMascot size={24} />
-          <span>Who&apos;s With Who?</span>
-        </Link>
+        <div className="shellInner topBarInner">
+          <Link to="/" className="brand">
+            <OwlMascot size={24} />
+            <span>Who&apos;s With Who?</span>
+          </Link>
 
-        <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
-          <IconButton
-            onClick={() => toggleMode()}
-            size="small"
-            sx={{ color: 'text.secondary', ml: 'auto' }}
-            aria-label="Toggle theme"
-          >
-            {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-          </IconButton>
-        </Tooltip>
+          <nav className="desktopNav" aria-label="Main">
+            {NAV.map(({ key, label, to }) => (
+              <Link
+                key={key}
+                to={to}
+                className={activeKey === key ? 'desktopNavLink active' : 'desktopNavLink'}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+            <IconButton
+              onClick={() => toggleMode()}
+              size="small"
+              className="themeToggle"
+              sx={{ color: 'text.secondary' }}
+              aria-label="Toggle theme"
+            >
+              {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+        </div>
       </header>
 
-      <main>{children}</main>
+      <main>
+        <div className="shellInner">{children}</div>
+      </main>
 
       <div className="bottomNavWrap">
         <BottomNavigation value={activeKey} showLabels sx={{ height: 64 }}>

@@ -82,25 +82,37 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
           {dateLabel}
         </Typography>
 
-        <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={48} max={5} />
+        <Box
+          sx={{
+            display: { xs: 'block', md: 'flex' },
+            gap: 2,
+            alignItems: { md: 'flex-start' },
+          }}
+        >
+          <Box sx={{ flexShrink: 0 }}>
+            <FaceStack people={game.previewPeople} totalCount={game.peopleCount} size={48} max={5} />
+          </Box>
 
-        <Typography variant="h5" sx={{ mt: 1.5, lineHeight: 1.25 }}>
-          {game.title}
-        </Typography>
+          <Box sx={{ flex: 1, minWidth: 0, mt: { xs: 1.5, md: 0 } }}>
+            <Typography variant="h5" sx={{ lineHeight: 1.25 }}>
+              {game.title}
+            </Typography>
 
-        {game.description ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
-            {game.description}
-          </Typography>
-        ) : null}
+            {game.description ? (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
+                {game.description}
+              </Typography>
+            ) : null}
 
-        <Box sx={{ mt: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-          <MetaLine items={metaItems} />
-          <MatchingModeChip mode={game.ownerMatchingMode} />
-        </Box>
+            <Box sx={{ mt: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              <MetaLine items={metaItems} />
+              <MatchingModeChip mode={game.ownerMatchingMode} />
+            </Box>
 
-        <Box sx={{ mt: 1 }}>
-          <TagRow tags={game.tags} />
+            <Box sx={{ mt: 1 }}>
+              <TagRow tags={game.tags} />
+            </Box>
+          </Box>
         </Box>
 
         <Button
@@ -109,7 +121,7 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
           variant="contained"
           color="primary"
           fullWidth
-          sx={{ mt: 1.75 }}
+          sx={{ mt: 1.75, maxWidth: { md: 240 } }}
         >
           {completed ? 'View score' : 'Play'}
         </Button>
