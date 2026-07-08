@@ -6,10 +6,14 @@ import {
   Stack,
   TextField,
   Typography,
+  Alert,
 } from '@mui/material'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import EmailCodeLogin from '../components/EmailCodeLogin'
 import PageHeader from '../components/PageHeader'
 import SectionCard from '../components/SectionCard'
 import PersonPhotoUpload from '../components/PersonPhotoUpload'
@@ -20,12 +24,15 @@ import RelationshipEditor, {
   relationshipsComplete,
   syncRelationshipsForPeople,
 } from '../components/RelationshipEditor'
+import { useAuth } from '../contexts/AuthContext'
 import type { MatchingMode } from '../game/matchingModes'
 import { MATCHING_MODE_LABELS } from '../game/matchingModes'
 import MatchingModePicker from '../components/MatchingModePicker'
+import { publishGame } from '../services/publishGame'
+import { isSupabaseEnabled } from '../services/gameService'
 
-function makeId() {
-  return `person_${Math.random().toString(36).slice(2, 9)}`
+function makePersonId() {
+  return crypto.randomUUID()
 }
 
 const pillSx = (active: boolean) => ({
@@ -40,12 +47,15 @@ const pillSx = (active: boolean) => ({
 })
 
 export default function CreateGamePage() {
+  const navigate = useNavigate()
+  const { user, loading: authLoading } = useAuth()
+
   const [title, setTitle] = useState('')
   const [ownerMatchingMode, setOwnerMatchingMode] = useState<MatchingMode>('tap_pairs')
   const [modeLocked, setModeLocked] = useState(false)
   const [people, setPeople] = useState<DraftPerson[]>([
-    { id: makeId(), name: '', photoDataUrl: null },
-    { id: makeId(), name: '', photoDataUrl: null },
+    { id: makePersonId(), name: '', photoDataUrl: null },
+    { id: makePersonId(), name: '', photoDataUrl: null },
   ])
   const [relationships, setRelationships] = useState<DraftRelationships>({})
 
@@ -58,7 +68,7 @@ export default function CreateGamePage() {
   }
 
   function addPerson() {
-    setPeople((prev) => [...prev, { id: makeId(), name: '', photoDataUrl: null }])
+    setPeople((prev) => [...prev, { id: makePersonId(), name: '', photoDataUrl: null }])
   }
 
   function removePerson(id: string) {
@@ -72,12 +82,37 @@ export default function CreateGamePage() {
 
   const relationshipsReady = relationshipsComplete(people, relationships)
 
-  const canPublish = useMemo(() => {
+  const formReady = useMemo(() => {
     if (!title.trim()) return false
     if (people.length < 2) return false
     if (!people.every((p) => p.name.trim() && p.photoDataUrl)) return false
     return relationshipsReady
   }, [title, people, relationshipsReady])
+
+  const needsAuth = isSupabaseEnabled && !user
+  const canPublish = formReady && !needsAuth && isSupabaseEnabled
+
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      publishGame({
+        title,
+        ownerMatchingMode,
+        modeLocked,
+        people,
+        relationships,
+      }),
+    onSuccess: (result) => {
+      navigate(`/game/${result.slug}/play`)
+    },
+  })
+
+  function publishButtonLabel() {
+    if (!isSupabaseEnabled) return 'Supabase required to publish'
+    if (needsAuth) return 'Sign in to publish'
+    if (!formReady) return 'Fill in all fields to publish'
+    if (publishMutation.isPending) return 'Publishing…'
+    return 'Publish game'
+  }
 
   return (
     <div className="page">
@@ -85,6 +120,26 @@ export default function CreateGamePage() {
         title="Create"
         subtitle="Add photos, names, and who is actually with who."
       />
+
+      {!isSupabaseEnabled ? (
+        <Alert severity="info">
+          Connect Supabase to publish games. Locally you can still fill out the form to preview the flow.
+        </Alert>
+      ) : null}
+
+      {needsAuth && !authLoading ? (
+        <SectionCard title="Sign in to publish" subtitle="Required before your game goes live.">
+          <EmailCodeLogin compact />
+        </SectionCard>
+      ) : null}
+
+      {publishMutation.error ? (
+        <Alert severity="error">
+          {publishMutation.error instanceof Error
+            ? publishMutation.error.message
+            : 'Could not publish game.'}
+        </Alert>
+      ) : null}
 
       <SectionCard title="Details">
         <Box
@@ -204,8 +259,16 @@ export default function CreateGamePage() {
         />
       </SectionCard>
 
-      <Button variant="contained" color="primary" fullWidth size="large" disabled={!canPublish} sx={{ py: 1.35 }}>
-        {canPublish ? 'Publish game' : 'Fill in all fields to publish'}
+      <Button
+        variant="contained"
+        color="primary"
+        fullWidth
+        size="large"
+        disabled={!canPublish || publishMutation.isPending}
+        onClick={() => publishMutation.mutate()}
+        sx={{ py: 1.35 }}
+      >
+        {publishButtonLabel()}
       </Button>
     </div>
   )

@@ -45,6 +45,8 @@ Open [Supabase SQL Editor](https://supabase.com/dashboard/project/sedfdxrlxvsous
 
 After applying, reload the app — you should see the demo games on Home.
 
+**Publishing games** also needs migration `20260708160200_publish_game.sql` (storage bucket + `publish_game` RPC).
+
 ## Seed data
 
 Migration `20260708160100_seed_demo_games.sql` inserts three playable games with slugs `demo`, `college`, and `office` so routes like `/game/demo/play` keep working.
