@@ -174,7 +174,7 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
   }
 
   return (
-    <SectionCard title="Sign in" subtitle="We'll email you a 6-digit code — no password.">
+    <SectionCard title="Sign in">
       {body}
     </SectionCard>
   )

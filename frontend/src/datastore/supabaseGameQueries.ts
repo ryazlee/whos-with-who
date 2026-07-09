@@ -2,6 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { MatchingMode } from '../game/matchingModes'
 import { normalizeAllowedModes } from '../game/matchingModes'
 import type { GameSummary, ID } from './types'
+import { resolvePersonImageUrl } from '../lib/personAvatar'
+
+function resolveImageUrl(url: string, name?: string): string {
+  return resolvePersonImageUrl(url, name ?? '')
+}
 
 type GameRow = {
   id: string
@@ -14,14 +19,6 @@ type GameRow = {
   allowed_matching_modes: string[] | null
   creator_display_name: string | null
   published_at: string | null
-}
-
-function resolveImageUrl(url: string): string {
-  if (url.startsWith('mock/')) {
-    const base = import.meta.env.BASE_URL
-    return `${base}${url}`
-  }
-  return url
 }
 
 export async function fetchGameSummaries(
@@ -78,7 +75,7 @@ export async function fetchGameSummaries(
     list.push({
       id: p.id,
       name: p.name,
-      imageUrl: resolveImageUrl(p.primary_image_url),
+      imageUrl: resolveImageUrl(p.primary_image_url, p.name),
     })
     peopleByGame.set(p.game_id, list)
   }

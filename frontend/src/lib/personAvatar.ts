@@ -1,7 +1,7 @@
-/** Local mock portraits for demo people (served from /public). */
+/** Local mock portraits — SVG initials (no static jpg assets required). */
 export function mockPersonImage(slug: string): string {
-  const base = import.meta.env.BASE_URL
-  return `${base}mock/people/${slug}.jpg`
+  const name = slug.charAt(0).toUpperCase() + slug.slice(1)
+  return avatarDataUrl(name, slugHue(slug))
 }
 
 /** Offline-friendly placeholder avatar (initials on warm background). */
@@ -13,4 +13,33 @@ export function avatarDataUrl(name: string, hue = 18): string {
       font-family="system-ui,sans-serif" font-size="52" font-weight="600" fill="hsl(${hue} 30% 38%)">${initial}</text>
   </svg>`
   return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+function slugHue(slug: string): number {
+  let h = 0
+  for (let i = 0; i < slug.length; i += 1) {
+    h = (h * 31 + slug.charCodeAt(i)) % 360
+  }
+  return h
+}
+
+const MOCK_IMAGE_RE = /mock\/people\/([^/?#]+)\.jpg/i
+
+/** Resolve seed/demo `mock/people/*.jpg` paths and legacy local URLs to placeholders. */
+export function resolvePersonImageUrl(imageUrl: string, name = ''): string {
+  if (!imageUrl) return avatarDataUrl(name || '?')
+
+  const match = imageUrl.match(MOCK_IMAGE_RE)
+  if (match) {
+    const slug = match[1]
+    const displayName = name.trim() || slug.charAt(0).toUpperCase() + slug.slice(1)
+    return avatarDataUrl(displayName, slugHue(slug))
+  }
+
+  if (imageUrl.startsWith('mock/')) {
+    const base = import.meta.env.BASE_URL
+    return resolvePersonImageUrl(`${base}${imageUrl}`, name)
+  }
+
+  return imageUrl
 }

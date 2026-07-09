@@ -11,13 +11,17 @@ export function formatAttemptCount(n: number): string {
 }
 
 export function formatPostedDate(isoDate: string | null | undefined): string | null {
+  return formatDateShort(isoDate)
+}
+
+/** Short locale date for compact meta lines (no "Posted" prefix). */
+export function formatDateShort(isoDate: string | null | undefined): string | null {
   if (!isoDate) return null
   const date = new Date(isoDate)
   if (Number.isNaN(date.getTime())) return null
-  const label = date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   })
-  return `Posted ${label}`
 }

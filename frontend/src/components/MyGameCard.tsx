@@ -18,9 +18,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
 import { useDeleteGame, useUpdateGameVisibility } from '../hooks/useGame'
 import { absoluteGameUrl, gamePlayPath } from '../lib/gameUrl'
-import { formatAttemptCount, formatPostedDate, formatTag } from '../lib/formatters'
-import FaceStack, { faceStackWidth } from './FaceStack'
-import MatchingModeChip from './MatchingModeChip'
+import GameCardContent from './GameCardContent'
 import PrimaryActionButton from './PrimaryActionButton'
 
 type Props = {
@@ -54,107 +52,31 @@ export default function MyGameCard({ game, onDeleted }: Props) {
     onDeleted?.()
   }
 
-  const stackSize = 36
-  const stackMax = 3
-  const stackWidth = faceStackWidth(stackSize, stackMax)
-
-  const metaItems = [
-    game.authorName?.trim() ? `By ${game.authorName.trim()}` : null,
-    `${game.peopleCount} people`,
-    `${formatAttemptCount(game.attemptCount)} plays`,
-    formatPostedDate(game.publishedAt),
-  ].filter(Boolean) as string[]
-
   return (
     <>
-      <Box className="surfaceCard gameCardCompact" sx={{ p: 1.25 }}>
-        <Box className="gameCardRow">
-          <Box className="gameCardCompact__avatar" sx={{ width: stackWidth }}>
-            <FaceStack
-              people={game.previewPeople}
-              totalCount={game.peopleCount}
-              size={stackSize}
-              max={stackMax}
-            />
-          </Box>
+      <Box className="surfaceCard gameCard gameCard--manage">
+        <GameCardContent game={game} tagLimit={4} avatarSize={40} avatarMax={3} />
 
-          <Box className="gameCardCompact__body">
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: 0.5,
-              }}
-            >
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  lineHeight: 1.3,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {game.title}
-              </Typography>
-              <MatchingModeChip mode={game.ownerMatchingMode} />
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.35, display: 'block' }}>
-              {metaItems.join(' · ')}
-            </Typography>
-            {game.description ? (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  lineHeight: 1.35,
-                }}
-              >
-                {game.description}
-              </Typography>
-            ) : null}
-            {game.tags.length > 0 ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.35, mt: 0.15 }}>
-                {game.tags.slice(0, 4).map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={formatTag(tag)}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: '0.68rem', '& .MuiChip-label': { px: 0.65 } }}
-                  />
-                ))}
-              </Box>
-            ) : null}
-          </Box>
-        </Box>
-
-        <Stack spacing={0.5}>
-          <PrimaryActionButton to={gamePlayPath(game.id)} label="Play" sx={{ py: 1 }} />
+        <Stack spacing={0.75} className="gameCard__actions">
+          <PrimaryActionButton to={gamePlayPath(game.id)} label="Play" sx={{ py: 1.05 }} />
           <Button
             component={RouterLink}
             to={`/game/${game.id}/edit`}
-            variant="outlined"
+            variant="text"
             fullWidth
             size="small"
-            startIcon={<SettingsOutlinedIcon />}
+            startIcon={<SettingsOutlinedIcon sx={{ fontSize: '1.1rem' }} />}
+            sx={{ color: 'text.secondary', py: 0.75 }}
           >
             Settings
           </Button>
         </Stack>
 
-        <Box sx={{ pt: 0.875, borderTop: 1, borderColor: 'divider' }}>
-          <Typography className="section-label" component="p" sx={{ mb: 0.5 }}>
+        <Box className="gameCard__manageSection">
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
             Visibility
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 0.75 }}>
+          <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
             <Chip
               label="Public"
               size="small"
@@ -162,6 +84,7 @@ export default function MyGameCard({ game, onDeleted }: Props) {
               disabled={visibilityMutation.isPending}
               color={isPublic ? 'primary' : 'default'}
               variant={isPublic ? 'filled' : 'outlined'}
+              sx={{ height: 28, borderRadius: '8px' }}
             />
             <Chip
               label="Unlisted"
@@ -170,48 +93,47 @@ export default function MyGameCard({ game, onDeleted }: Props) {
               disabled={visibilityMutation.isPending}
               color={!isPublic ? 'primary' : 'default'}
               variant={!isPublic ? 'filled' : 'outlined'}
+              sx={{ height: 28, borderRadius: '8px' }}
             />
           </Box>
 
           {visibilityMutation.error ? (
-            <Alert severity="error" sx={{ mb: 0.75, py: 0.25 }}>
+            <Alert severity="error" sx={{ mb: 1, py: 0.25 }}>
               {visibilityMutation.error instanceof Error
                 ? visibilityMutation.error.message
                 : 'Could not update visibility.'}
             </Alert>
           ) : null}
 
-          <Stack spacing={0.5}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ wordBreak: 'break-all', lineHeight: 1.35 }}
-            >
-              {shareUrl}
-            </Typography>
-            <Button
-              variant="outlined"
-              fullWidth
-              size="small"
-              startIcon={<ContentCopyOutlinedIcon />}
-              onClick={() => void copyLink()}
-            >
-              {copied ? 'Copied' : 'Copy link'}
-            </Button>
-          </Stack>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ wordBreak: 'break-all', lineHeight: 1.4, display: 'block', mb: 0.75 }}
+          >
+            {shareUrl}
+          </Typography>
+          <Button
+            variant="outlined"
+            fullWidth
+            size="small"
+            startIcon={<ContentCopyOutlinedIcon />}
+            onClick={() => void copyLink()}
+            sx={{ borderRadius: '10px', mb: 0.75 }}
+          >
+            {copied ? 'Copied' : 'Copy link'}
+          </Button>
 
-          <Box sx={{ mt: 0.75 }}>
-            <Button
-              fullWidth
-              size="small"
-              color="error"
-              variant="outlined"
-              startIcon={<DeleteOutlineOutlinedIcon />}
-              onClick={() => setDeleteOpen(true)}
-            >
-              Delete game
-            </Button>
-          </Box>
+          <Button
+            fullWidth
+            size="small"
+            color="error"
+            variant="text"
+            startIcon={<DeleteOutlineOutlinedIcon />}
+            onClick={() => setDeleteOpen(true)}
+            sx={{ py: 0.5 }}
+          >
+            Delete game
+          </Button>
         </Box>
       </Box>
 

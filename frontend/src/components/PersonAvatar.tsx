@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import type { Person } from '../game/types'
+import { resolvePersonImageUrl } from '../lib/personAvatar'
 
 type Props = {
   person: Person
@@ -62,7 +63,7 @@ export default function PersonAvatar({
     >
       <Box
         component="img"
-        src={person.imageUrl}
+        src={resolvePersonImageUrl(person.imageUrl, person.name)}
         alt={person.name}
         sx={{
           width: size,

@@ -40,7 +40,7 @@ function generateRandomName() {
 }
 
 /**
- * Keeps anonymous display names stable across visits during a device/browser session.
+ * Guest display name — persisted in localStorage for anonymous play on this device.
  */
 export function getOrCreateDisplayName(): string {
   const existing = localStorage.getItem(STORAGE_KEY)

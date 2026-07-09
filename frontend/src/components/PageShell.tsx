@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import {
   BottomNavigation,
   BottomNavigationAction,
+  Box,
   IconButton,
   Tooltip,
 } from '@mui/material'
@@ -14,7 +15,6 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import { useThemeMode } from './MuiAppProvider'
-import OwlMascot from './OwlMascot'
 
 type Props = {
   children: ReactNode
@@ -66,20 +66,21 @@ export default function PageShell({ children }: Props) {
                 <ArrowBackOutlinedIcon />
               </IconButton>
               <span className="immersiveTitle">{immersiveTitle(path)}</span>
-              <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
-                <IconButton
-                  onClick={() => toggleMode()}
-                  aria-label="Toggle theme"
-                  sx={{ color: 'text.secondary', mr: -0.5 }}
-                >
-                  {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-                </IconButton>
-              </Tooltip>
+              <Box className="themeToggle">
+                <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+                  <IconButton
+                    onClick={() => toggleMode()}
+                    aria-label="Toggle theme"
+                    sx={{ color: 'text.secondary', mr: -0.5 }}
+                  >
+                    {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </>
           ) : (
             <>
               <Link to="/" className="brand">
-                <OwlMascot size={28} />
                 <span className="brandText">Who&apos;s With Who?</span>
               </Link>
 
@@ -95,16 +96,17 @@ export default function PageShell({ children }: Props) {
                 ))}
               </nav>
 
-              <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
-                <IconButton
-                  onClick={() => toggleMode()}
-                  className="themeToggle"
-                  sx={{ color: 'text.secondary' }}
-                  aria-label="Toggle theme"
-                >
-                  {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-                </IconButton>
-              </Tooltip>
+              <Box className="themeToggle">
+                <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+                  <IconButton
+                    onClick={() => toggleMode()}
+                    sx={{ color: 'text.secondary' }}
+                    aria-label="Toggle theme"
+                  >
+                    {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </>
           )}
         </div>

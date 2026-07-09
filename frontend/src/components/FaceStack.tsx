@@ -1,4 +1,5 @@
 import { Box } from '@mui/material'
+import { resolvePersonImageUrl } from '../lib/personAvatar'
 
 type PreviewPerson = {
   id: string
@@ -27,7 +28,7 @@ const faceImgSx = (size: number, index: number) => ({
   height: size,
   borderRadius: '50%',
   objectFit: 'cover' as const,
-  border: '2px solid',
+  border: '1.5px solid',
   borderColor: 'background.paper',
   ml: index === 0 ? `-${size * 0.2}px` : `-${size * OVERLAP}px`,
   position: 'relative' as const,
@@ -45,7 +46,7 @@ const slotSx = (size: number, index: number, zIndex: number) => ({
   flexShrink: 0,
   display: 'grid',
   placeItems: 'center',
-  border: '2px solid',
+  border: '1.5px solid',
   borderColor: 'background.paper',
 })
 
@@ -74,7 +75,7 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
         <Box
           key={p.id}
           component="img"
-          src={p.imageUrl}
+          src={resolvePersonImageUrl(p.imageUrl, p.name)}
           alt={p.name}
           title={p.name}
           sx={{ ...faceImgSx(size, i), zIndex: max - i }}

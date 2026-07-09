@@ -3,23 +3,20 @@ import { Stack } from '@mui/material'
 import { Navigate, useParams } from 'react-router-dom'
 import type { MatchAllSelections } from '../datastore/types'
 import DrawLinesPlay from '../components/DrawLinesPlay'
-import EmailCodeLogin from '../components/EmailCodeLogin'
+import GuestPlayBanner, { GuestPlayHint } from '../components/GuestPlayBanner'
 import GameSummaryHero from '../components/GameSummaryHero'
 import MatchAllPlay from '../components/MatchAllPlay'
 import { MatchingModeBar } from '../components/MatchingModePicker'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
-import SectionCard from '../components/SectionCard'
 import StickyActionBar from '../components/StickyActionBar'
 import TapPairsPlay from '../components/TapPairsPlay'
 import PrimaryActionButton from '../components/PrimaryActionButton'
-import { useAuth } from '../contexts/AuthContext'
 import type { MatchingMode } from '../game/matchingModes'
 import { normalizeAllowedModes } from '../game/matchingModes'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
-import { isSupabaseEnabled } from '../services/gameService'
 
 function emptySelections(_mode: MatchingMode): MatchAllSelections {
   return {}
@@ -48,9 +45,6 @@ function pickInitialMode(game: {
 export default function PlayGamePage() {
   const { id } = useParams<{ id: string }>()
   const gameId = id ?? 'demo'
-
-  const { user, loading: authLoading } = useAuth()
-  const needsAuth = isSupabaseEnabled && !user
 
   const { attempt: completedAttempt, loading: attemptLoading } = useMyGameAttempt(gameId)
 
@@ -88,7 +82,7 @@ export default function PlayGamePage() {
     setSelections(emptySelections(activeMode))
   }, [activeMode]) // eslint-disable-line react-hooks/exhaustive-deps -- reset picks when switching mode
 
-  if (attemptLoading || (isSupabaseEnabled && authLoading)) {
+  if (attemptLoading) {
     return <div className="page"><PageLoading /></div>
   }
 
@@ -113,11 +107,7 @@ export default function PlayGamePage() {
       <Stack spacing={2}>
         {gameSummary ? <GameSummaryHero game={gameSummary} avatarSize={44} avatarMax={3} /> : null}
 
-        {needsAuth ? (
-          <SectionCard title="Sign in to submit" subtitle="We'll email you a 6-digit code. You can still match below.">
-            <EmailCodeLogin compact />
-          </SectionCard>
-        ) : null}
+        <GuestPlayBanner variant="play" />
 
         <MatchingModeBar
           allowedModes={allowedModes}
@@ -153,19 +143,20 @@ export default function PlayGamePage() {
 
       <StickyActionBar>
         <div className="stickyActionBarInner playSubmitDock">
-          <PrimaryActionButton
-            disabled={submitAttempt.isPending || !submitReady || needsAuth}
-            onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
-            label={
-              submitAttempt.isPending
-                ? 'Submitting…'
-                : needsAuth
-                  ? 'Sign in to submit'
+          <Stack spacing={0.75}>
+            <PrimaryActionButton
+              disabled={submitAttempt.isPending || !submitReady}
+              onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
+              label={
+                submitAttempt.isPending
+                  ? 'Submitting…'
                   : submitReady
                     ? 'Submit answers'
                     : 'Match everyone first'
-            }
-          />
+              }
+            />
+            <GuestPlayHint />
+          </Stack>
         </div>
       </StickyActionBar>
     </div>

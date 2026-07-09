@@ -10,23 +10,20 @@ import type { WhoWithWhoDatastore } from './WhoWithWhoDatastore'
 import { fetchGameSummaries } from './supabaseGameQueries'
 import { ensureSession } from '../lib/auth'
 import { supabase } from '../lib/supabaseClient'
-import { saveAttemptResult, getCompletedAttemptForGame } from '../lib/localAttempts'
+import { getCompletedAttemptForGame, getLocalAttemptResult, saveAttemptResult } from '../lib/localAttempts'
 import type { MatchingMode } from '../game/matchingModes'
 import { normalizeAllowedModes } from '../game/matchingModes'
+import { resolvePersonImageUrl } from '../lib/personAvatar'
 
-function resolveImageUrl(url: string): string {
-  if (url.startsWith('mock/')) {
-    const base = import.meta.env.BASE_URL
-    return `${base}${url}`
-  }
-  return url
+function resolveImageUrl(url: string, name?: string): string {
+  return resolvePersonImageUrl(url, name ?? '')
 }
 
 function parseAttemptResult(raw: Record<string, unknown>): AttemptResult {
   const people = (raw.people as Array<{ id: string; name: string; imageUrl: string }>).map((p) => ({
     id: p.id,
     name: p.name,
-    imageUrl: resolveImageUrl(p.imageUrl),
+    imageUrl: resolveImageUrl(p.imageUrl, p.name),
   }))
 
   return {
@@ -152,7 +149,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
       people: (people ?? []).map((p) => ({
         id: p.id,
         name: p.name,
-        imageUrl: resolveImageUrl(p.primary_image_url),
+        imageUrl: resolveImageUrl(p.primary_image_url, p.name),
       })),
       allowSingleChoice,
     }
@@ -163,8 +160,6 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
     selections: MatchAllSelections
     displayNameSnapshot: string
   }): Promise<AttemptResult> {
-    const sb = await this.authedClient()
-
     if (getCompletedAttemptForGame(args.gameId)) {
       throw new Error('You already played this game')
     }
@@ -174,7 +169,12 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
       selected_partner_id: selectedPartnerId,
     }))
 
-    const { data, error } = await sb.rpc('submit_attempt', {
+    const sb = this.sb()
+    const { data: sessionData } = await sb.auth.getSession()
+    const isSignedIn = Boolean(sessionData.session?.user)
+    const rpcName = isSignedIn ? 'submit_attempt' : 'grade_guest_attempt'
+
+    const { data, error } = await sb.rpc(rpcName, {
       p_game_id: args.gameId,
       p_answers: answers,
       p_display_name: args.displayNameSnapshot,
@@ -219,6 +219,9 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
   }
 
   async getAttemptResult(attemptId: ID): Promise<AttemptResult> {
+    const local = getLocalAttemptResult(attemptId)
+    if (local) return local
+
     const sb = await this.authedClient()
 
     const { data, error } = await sb.rpc('get_attempt_result', {

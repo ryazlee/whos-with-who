@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material'
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
+import GuestPlayBanner from '../components/GuestPlayBanner'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import PersonAvatar from '../components/PersonAvatar'
@@ -146,6 +147,8 @@ export default function AttemptResultPage() {
           </Stack>
         </Collapse>
       </Box>
+
+      <GuestPlayBanner variant="result" />
 
       <PrimaryActionButton to="/" label="Back to games" />
     </div>
