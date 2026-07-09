@@ -3,7 +3,6 @@ import { Stack } from '@mui/material'
 import { Navigate, useParams } from 'react-router-dom'
 import type { MatchAllSelections } from '../datastore/types'
 import DrawLinesPlay from '../components/DrawLinesPlay'
-import GuestPlayBanner, { GuestPlayHint } from '../components/GuestPlayBanner'
 import GameSummaryHero from '../components/GameSummaryHero'
 import MatchAllPlay from '../components/MatchAllPlay'
 import { MatchingModeBar } from '../components/MatchingModePicker'
@@ -107,8 +106,6 @@ export default function PlayGamePage() {
       <Stack spacing={2}>
         {gameSummary ? <GameSummaryHero game={gameSummary} avatarSize={44} avatarMax={3} /> : null}
 
-        <GuestPlayBanner variant="play" />
-
         <MatchingModeBar
           allowedModes={allowedModes}
           modeLocked={game.modeLocked}
@@ -143,20 +140,17 @@ export default function PlayGamePage() {
 
       <StickyActionBar>
         <div className="stickyActionBarInner playSubmitDock">
-          <Stack spacing={0.75}>
-            <PrimaryActionButton
-              disabled={submitAttempt.isPending || !submitReady}
-              onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
-              label={
-                submitAttempt.isPending
-                  ? 'Submitting…'
-                  : submitReady
-                    ? 'Submit answers'
-                    : 'Match everyone first'
-              }
-            />
-            <GuestPlayHint />
-          </Stack>
+          <PrimaryActionButton
+            disabled={submitAttempt.isPending || !submitReady}
+            onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
+            label={
+              submitAttempt.isPending
+                ? 'Submitting…'
+                : submitReady
+                  ? 'Submit answers'
+                  : 'Match everyone first'
+            }
+          />
         </div>
       </StickyActionBar>
     </div>

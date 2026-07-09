@@ -43,6 +43,8 @@ export default function AttemptResultPage() {
     ? Math.round((result.correctCount / result.totalQuestions) * 100)
     : 0
 
+  const hasCommunityData = result.communityPerPerson.length > 0
+
   return (
     <div className="page">
       <Box className="surfaceCard" sx={{ p: 2.5, textAlign: 'center' }}>
@@ -104,51 +106,64 @@ export default function AttemptResultPage() {
       </SectionCard>
 
       <Box className="surfaceCard">
-        <Button
-          fullWidth
-          onClick={() => setCrowdOpen((v) => !v)}
-          endIcon={
-            <ExpandMoreOutlinedIcon
-              sx={{ transform: crowdOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-            />
-          }
-          sx={{
-            justifyContent: 'space-between',
-            px: 2,
-            py: 1.5,
-            color: 'text.primary',
-            fontWeight: 500,
-            borderRadius: 0,
-          }}
-        >
-          What everyone else guessed
-        </Button>
-        <Collapse in={crowdOpen}>
-          <Stack spacing={1.5} sx={{ px: 2, pb: 2, pt: 0.5 }}>
-            {result.communityPerPerson.map((x) => {
-              const person = personById.get(x.personId)
-              return (
-                <Box key={x.personId}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                      {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {personNameById.get(x.personId)}
-                      </Typography>
+        {hasCommunityData ? (
+          <>
+            <Button
+              fullWidth
+              onClick={() => setCrowdOpen((v) => !v)}
+              endIcon={
+                <ExpandMoreOutlinedIcon
+                  sx={{ transform: crowdOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                />
+              }
+              sx={{
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.5,
+                color: 'text.primary',
+                fontWeight: 500,
+                borderRadius: 0,
+              }}
+            >
+              What everyone else guessed
+            </Button>
+            <Collapse in={crowdOpen}>
+              <Stack spacing={1.5} sx={{ px: 2, pb: 2, pt: 0.5 }}>
+                {result.communityPerPerson.map((x) => {
+                  const person = personById.get(x.personId)
+                  return (
+                    <Box key={x.personId}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {personNameById.get(x.personId)}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                          {label(x.topPartnerId)} · {x.topPercent}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress variant="determinate" value={x.topPercent} />
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                      {label(x.topPartnerId)} · {x.topPercent}%
-                    </Typography>
-                  </Box>
-                  <LinearProgress variant="determinate" value={x.topPercent} />
-                </Box>
-              )
-            })}
-          </Stack>
-        </Collapse>
+                  )
+                })}
+              </Stack>
+            </Collapse>
+          </>
+        ) : (
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              What everyone else guessed
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
+              No crowd data yet — you&apos;re early. Check back after more people play.
+            </Typography>
+          </Box>
+        )}
       </Box>
 
-      <GuestPlayBanner variant="result" />
+      <GuestPlayBanner />
 
       <PrimaryActionButton to="/" label="Back to games" />
     </div>
