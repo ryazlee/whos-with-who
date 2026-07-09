@@ -1,0 +1,2 @@
+export const TOP_LIST_PREVIEW_COUNT = 5
+export const TOP_LIST_EXPANDED_COUNT = 15

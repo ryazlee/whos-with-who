@@ -1,22 +1,19 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, LinearProgress, Stack, Typography } from '@mui/material'
-import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
+import { Box, LinearProgress, Stack, Typography } from '@mui/material'
 import type { CommunityPerPerson, ID } from '../datastore/types'
 import type { Person } from '../game/types'
-import {
-  isCommunityPickCorrect,
-  sortedCommunityPicks,
-  topCommunityPicks,
-} from '../lib/communityPicks'
+import { isCommunityPickCorrect, sortedCommunityPicks } from '../lib/communityPicks'
+import { TOP_LIST_EXPANDED_COUNT, TOP_LIST_PREVIEW_COUNT } from '../lib/topListLimits'
 import PersonAvatar from './PersonAvatar'
 import SectionCard from './SectionCard'
+import TopListExpandButton from './TopListExpandButton'
 
 type Props = {
   communityPerPerson: CommunityPerPerson
   people: Person[]
   /** Map person id → correct partner (null = single). Enables green/red highlights. */
   correctPartnerIdByPerson?: Map<ID, ID | null>
-  /** When false, uses SectionCard layout and shows all picks sorted by frequency. */
+  /** When false, uses SectionCard layout (stats page). */
   collapsible?: boolean
 }
 
@@ -96,10 +93,10 @@ export default function GameCommunityPanel({
   const personNameById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people])
 
   const allPicks = useMemo(() => sortedCommunityPicks(communityPerPerson), [communityPerPerson])
-  const previewPicks = useMemo(() => topCommunityPicks(communityPerPerson, 5), [communityPerPerson])
-  const visiblePicks = collapsible ? (expanded ? allPicks : previewPicks) : allPicks
+  const visibleLimit = expanded ? TOP_LIST_EXPANDED_COUNT : TOP_LIST_PREVIEW_COUNT
+  const visiblePicks = useMemo(() => allPicks.slice(0, visibleLimit), [allPicks, visibleLimit])
   const hasData = allPicks.length > 0
-  const canExpand = collapsible && allPicks.length > previewPicks.length
+  const canExpand = allPicks.length > TOP_LIST_PREVIEW_COUNT
 
   const pickList = (
     <Stack spacing={1.25} className="crowdPickList">
@@ -119,26 +116,7 @@ export default function GameCommunityPanel({
   )
 
   const expandControl = hasData && canExpand ? (
-    <Button
-      fullWidth
-      onClick={() => setExpanded((v) => !v)}
-      endIcon={
-        <ExpandMoreOutlinedIcon
-          sx={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-        />
-      }
-      sx={{
-        justifyContent: 'space-between',
-        mt: 1,
-        px: collapsible ? 2 : 0,
-        py: 1,
-        color: 'text.secondary',
-        fontWeight: 500,
-        borderRadius: 0,
-      }}
-    >
-      {expanded ? 'Show top picks only' : `Show all ${allPicks.length} picks`}
-    </Button>
+    <TopListExpandButton expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
   ) : null
 
   const empty = (
@@ -150,7 +128,14 @@ export default function GameCommunityPanel({
   if (!collapsible) {
     return (
       <SectionCard title="Most popular picks">
-        {hasData ? pickList : empty}
+        {hasData ? (
+          <>
+            {pickList}
+            {expandControl}
+          </>
+        ) : (
+          empty
+        )}
       </SectionCard>
     )
   }

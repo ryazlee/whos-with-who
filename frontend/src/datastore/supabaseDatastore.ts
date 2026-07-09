@@ -240,7 +240,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
     return parseAttemptResult(data as Record<string, unknown>)
   }
 
-  async getGameLeaderboard(gameId: ID, limit = 10): Promise<LeaderboardEntry[]> {
+  async getGameLeaderboard(gameId: ID, limit = 15): Promise<LeaderboardEntry[]> {
     const sb = this.sb()
 
     const { data, error } = await sb.rpc('game_leaderboard', {

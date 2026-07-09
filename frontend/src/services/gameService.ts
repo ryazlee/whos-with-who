@@ -49,7 +49,7 @@ export async function getMyAttemptForGame(gameId: ID): Promise<AttemptResult | n
   return datastore.getMyAttemptForGame(gameId)
 }
 
-export async function getGameLeaderboard(gameId: ID, limit = 10): Promise<LeaderboardEntry[]> {
+export async function getGameLeaderboard(gameId: ID, limit = 15): Promise<LeaderboardEntry[]> {
   return datastore.getGameLeaderboard(gameId, limit)
 }
 

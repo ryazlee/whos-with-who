@@ -115,7 +115,7 @@ function gameForPlayFromDefinition(game: MockGameDefinition): GameForPlay {
 class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
   private attemptsById = new Map<ID, AttemptResult>()
 
-  private leaderboardForGame(gameId: ID): LeaderboardEntry[] {
+  private leaderboardForGame(gameId: ID, limit: number): LeaderboardEntry[] {
     const game = getMockGame(gameId)
     const seeded = (game?.leaderboardScores ?? []).map((row, index) => ({
       attemptId: row.attemptId,
@@ -137,7 +137,7 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
 
     const merged = [...live, ...seeded]
       .sort((a, b) => b.score100 - a.score100 || b.correctCount - a.correctCount)
-      .slice(0, 10)
+      .slice(0, limit)
       .map((row, index) => ({ ...row, rank: index + 1 }))
 
     return merged
@@ -238,10 +238,10 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
     throw new Error('Attempt not found')
   }
 
-  async getGameLeaderboard(gameId: ID, _limit = 10): Promise<LeaderboardEntry[]> {
+  async getGameLeaderboard(gameId: ID, limit = 15): Promise<LeaderboardEntry[]> {
     const game = getMockGame(gameId)
     if (!game) throw new Error('Game not found')
-    return this.leaderboardForGame(gameId)
+    return this.leaderboardForGame(gameId, limit)
   }
 
   async getGameCommunityStats(gameId: ID): Promise<CommunityPerPerson> {
