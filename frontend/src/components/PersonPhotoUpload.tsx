@@ -1,10 +1,11 @@
-import { Box, Button, IconButton, Typography } from '@mui/material'
+import { Box, Button, IconButton, Stack, Typography } from '@mui/material'
 import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import { useRef, useState } from 'react'
 import { fileToDataUrl } from '../lib/fileImage'
-import { ACCEPTED_IMAGE_ACCEPT, isAcceptedImageFile, supportsFaceBlur } from '../lib/imageMime'
+import { ACCEPTED_IMAGE_ACCEPT, isAcceptedImageFile, supportsImageEdit } from '../lib/imageMime'
 import FaceBlurEditor from './FaceBlurEditor'
+import ImageCropEditor from './ImageCropEditor'
 
 type Props = {
   value?: string | null
@@ -15,6 +16,7 @@ type Props = {
 export default function PersonPhotoUpload({ value, onChange, required }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [blurOpen, setBlurOpen] = useState(false)
+  const [cropOpen, setCropOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -75,15 +77,25 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
               <CloseOutlinedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
-          {supportsFaceBlur(value) ? (
-            <Button
-              size="small"
-              variant="text"
-              onClick={() => setBlurOpen(true)}
-              sx={{ mt: 0.35, px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500 }}
-            >
-              Blur faces
-            </Button>
+          {supportsImageEdit(value) ? (
+            <Stack spacing={0} sx={{ mt: 0.35 }}>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setCropOpen(true)}
+                sx={{ px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500, justifyContent: 'flex-start' }}
+              >
+                Crop
+              </Button>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setBlurOpen(true)}
+                sx={{ px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500, justifyContent: 'flex-start' }}
+              >
+                Blur faces
+              </Button>
+            </Stack>
           ) : (
             <Typography
               variant="caption"
@@ -124,7 +136,19 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
         onChange={(e) => void handleFilePick(e)}
       />
 
-      {value && blurOpen && supportsFaceBlur(value) ? (
+      {value && cropOpen && supportsImageEdit(value) ? (
+        <ImageCropEditor
+          dataUrl={value}
+          open={cropOpen}
+          onClose={() => setCropOpen(false)}
+          onComplete={({ dataUrl: cropped }) => {
+            onChange(cropped)
+            setCropOpen(false)
+          }}
+        />
+      ) : null}
+
+      {value && blurOpen && supportsImageEdit(value) ? (
         <FaceBlurEditor
           dataUrl={value}
           open={blurOpen}

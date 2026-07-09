@@ -4,8 +4,8 @@ import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
 import type { CommunityPerPerson, ID } from '../datastore/types'
 import type { Person } from '../game/types'
 import {
-  flattenCommunityPicks,
   isCommunityPickCorrect,
+  sortedCommunityPicks,
   topCommunityPicks,
 } from '../lib/communityPicks'
 import PersonAvatar from './PersonAvatar'
@@ -16,7 +16,7 @@ type Props = {
   people: Person[]
   /** Map person id → correct partner (null = single). Enables green/red highlights. */
   correctPartnerIdByPerson?: Map<ID, ID | null>
-  /** When false, uses SectionCard layout (stats page). */
+  /** When false, uses SectionCard layout and shows all picks sorted by frequency. */
   collapsible?: boolean
 }
 
@@ -27,7 +27,7 @@ function pickLabel(
 ) {
   const name = personNameById.get(personId) ?? '?'
   if (partnerId === null) return `${name} · Single`
-  return `${name} · With ${personNameById.get(partnerId) ?? '?'}`
+  return `${name} · ${personNameById.get(partnerId) ?? '?'}`
 }
 
 function PickRow({
@@ -46,7 +46,9 @@ function PickRow({
   correctPartnerIdByPerson?: Map<ID, ID | null>
 }) {
   const person = personById.get(personId)
+  const partner = partnerId ? personById.get(partnerId) : null
   const correctness = isCommunityPickCorrect(personId, partnerId, correctPartnerIdByPerson)
+  const highlight = correctness === true ? 'correct' : correctness === false ? 'wrong' : undefined
   const rowClass =
     correctness === true
       ? 'crowdPickRow crowdPickRow--correct'
@@ -58,7 +60,14 @@ function PickRow({
     <Box className={rowClass}>
       <Box className="crowdPickRow__header">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-          {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+            {person ? (
+              <PersonAvatar person={person} size={32} showName={false} highlight={highlight} />
+            ) : null}
+            {partner ? (
+              <PersonAvatar person={partner} size={32} showName={false} highlight={highlight} />
+            ) : null}
+          </Box>
           <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 0 }}>
             {pickLabel(personId, partnerId, personNameById)}
           </Typography>
@@ -83,11 +92,11 @@ export default function GameCommunityPanel({
   const personById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
   const personNameById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people])
 
-  const allPicks = useMemo(() => flattenCommunityPicks(communityPerPerson), [communityPerPerson])
+  const allPicks = useMemo(() => sortedCommunityPicks(communityPerPerson), [communityPerPerson])
   const previewPicks = useMemo(() => topCommunityPicks(communityPerPerson, 5), [communityPerPerson])
-  const visiblePicks = expanded ? allPicks : previewPicks
+  const visiblePicks = collapsible ? (expanded ? allPicks : previewPicks) : allPicks
   const hasData = allPicks.length > 0
-  const canExpand = allPicks.length > previewPicks.length
+  const canExpand = collapsible && allPicks.length > previewPicks.length
 
   const pickList = (
     <Stack spacing={1.25} className="crowdPickList">
@@ -136,18 +145,8 @@ export default function GameCommunityPanel({
 
   if (!collapsible) {
     return (
-      <SectionCard
-        title="What everyone guessed"
-        subtitle="Top crowd picks · green = matches answer, red = off"
-      >
-        {hasData ? (
-          <>
-            {pickList}
-            {expandControl}
-          </>
-        ) : (
-          empty
-        )}
+      <SectionCard title="Most popular picks">
+        {hasData ? pickList : empty}
       </SectionCard>
     )
   }
@@ -156,13 +155,8 @@ export default function GameCommunityPanel({
     <Box className="surfaceCard">
       <Box sx={{ px: 2, pt: 1.5, pb: hasData ? 0.5 : 1.5 }}>
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          What everyone else guessed
+          Most popular picks
         </Typography>
-        {hasData ? (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.35 }}>
-            Top 5 picks · green = matches answer, red = off
-          </Typography>
-        ) : null}
       </Box>
       {hasData ? (
         <Box sx={{ px: 2, pb: 2 }}>

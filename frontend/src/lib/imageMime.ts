@@ -29,9 +29,14 @@ export function isGifUrl(url: string): boolean {
   return /\.gif(?:$|[?#])/i.test(url) || url.startsWith('data:image/gif')
 }
 
-/** Face blur flattens to JPEG — only offer for static images. */
-export function supportsFaceBlur(imageRef: string): boolean {
+/** Static image edits (blur, crop) flatten to JPEG — not offered for GIFs. */
+export function supportsImageEdit(imageRef: string): boolean {
   return !isGifDataUrl(imageRef) && !isGifUrl(imageRef)
+}
+
+/** @deprecated Use supportsImageEdit */
+export function supportsFaceBlur(imageRef: string): boolean {
+  return supportsImageEdit(imageRef)
 }
 
 export function imageExtensionForMime(mime: string): string {

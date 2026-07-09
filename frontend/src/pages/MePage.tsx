@@ -80,7 +80,7 @@ export default function MePage() {
       </SectionCard>
 
       {isConfigured && !user ? (
-        <SectionCard title="Sign in" subtitle="Optional — sync scores across devices">
+        <SectionCard title="Sign in">
           <EmailCodeLogin />
         </SectionCard>
       ) : null}

@@ -7,7 +7,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import SectionCard from './SectionCard'
 import { useAuth } from '../contexts/AuthContext'
 import { sendSignInLink } from '../lib/auth'
 import { getAuthRedirectUrl } from '../lib/authRedirect'
@@ -15,11 +14,10 @@ import { getAuthRedirectUrl } from '../lib/authRedirect'
 const RESEND_COOLDOWN_SEC = 60
 
 type Props = {
-  compact?: boolean
   onSuccess?: () => void
 }
 
-export default function EmailCodeLogin({ compact, onSuccess }: Props) {
+export default function EmailCodeLogin({ onSuccess }: Props) {
   const { user } = useAuth()
   const [step, setStep] = useState<'email' | 'sent'>('email')
   const [email, setEmail] = useState('')
@@ -137,13 +135,5 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
     </Stack>
   )
 
-  if (compact) {
-    return body
-  }
-
-  return (
-    <SectionCard title="Sign in">
-      {body}
-    </SectionCard>
-  )
+  return body
 }

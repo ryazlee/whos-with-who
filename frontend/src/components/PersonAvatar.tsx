@@ -7,6 +7,8 @@ type Props = {
   size?: number
   selected?: boolean
   paired?: boolean
+  /** Green/src answer highlight for crowd picks and results. */
+  highlight?: 'correct' | 'wrong'
   showName?: boolean
   /** Smaller label for dense layouts (e.g. draw lines with many people). */
   compact?: boolean
@@ -22,6 +24,7 @@ export default function PersonAvatar({
   size = 72,
   selected,
   paired,
+  highlight,
   showName = true,
   compact,
   onClick,
@@ -31,6 +34,14 @@ export default function PersonAvatar({
   onDrop,
 }: Props) {
   const src = useCachedPersonImageUrl(person.imageUrl, person.name)
+
+  const borderColor = highlight
+    ? highlight === 'correct'
+      ? 'var(--result-correct-border)'
+      : 'var(--result-wrong-border)'
+    : selected
+      ? 'primary.main'
+      : 'divider'
 
   return (
     <Box
@@ -76,8 +87,13 @@ export default function PersonAvatar({
           objectFit: 'cover',
           borderRadius: compact ? 1.25 : 1.5,
           border: compact ? '1.5px solid' : '2px solid',
-          borderColor: selected ? 'primary.main' : paired ? 'divider' : 'divider',
-          opacity: paired ? 0.85 : 1,
+          borderColor,
+          boxShadow: highlight
+            ? highlight === 'correct'
+              ? '0 0 0 2px color-mix(in srgb, var(--result-correct) 35%, transparent)'
+              : '0 0 0 2px color-mix(in srgb, var(--result-wrong) 35%, transparent)'
+            : 'none',
+          opacity: paired && !highlight ? 0.85 : 1,
           transition: 'border-color 0.15s, transform 0.1s',
           transform: selected ? 'scale(1.04)' : 'none',
         }}

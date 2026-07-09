@@ -12,10 +12,12 @@ import SectionCard from '../components/SectionCard'
 import {
   useCanViewGameStats,
   useGameCommunityStats,
+  useGameForEdit,
   useGameForPlay,
   useGameLeaderboard,
   useGameSummary,
 } from '../hooks/useGame'
+import { answerKeyFromRelationships } from '../lib/answerKey'
 import { formatAttemptCount } from '../lib/formatters'
 import { getLocalAttemptResult } from '../lib/localAttempts'
 import { gamePlayPath } from '../lib/gameUrl'
@@ -26,6 +28,7 @@ export default function GameStatsPage() {
 
   const { canView, completed, isOwner, loading: accessLoading } = useCanViewGameStats(gameId)
   const { game, loading: summaryLoading, error: summaryError } = useGameSummary(gameId)
+  const { game: editGame } = useGameForEdit(isOwner ? gameId : '')
 
   const statsEnabled = Boolean(gameId && canView && !accessLoading)
   const { game: playGame, loading: playLoading } = useGameForPlay(statsEnabled ? gameId : '')
@@ -35,13 +38,15 @@ export default function GameStatsPage() {
   )
 
   const yourResult = completed ? getLocalAttemptResult(completed.attemptId) : null
-  const correctPartnerIdByPerson = useMemo(
-    () =>
-      yourResult
-        ? new Map(yourResult.perPerson.map((row) => [row.personId, row.correctPartnerId]))
-        : new Map<string, string | null>(),
-    [yourResult],
-  )
+  const correctPartnerIdByPerson = useMemo(() => {
+    if (yourResult) {
+      return new Map(yourResult.perPerson.map((row) => [row.personId, row.correctPartnerId]))
+    }
+    if (isOwner && editGame) {
+      return answerKeyFromRelationships(editGame.relationships)
+    }
+    return undefined
+  }, [yourResult, isOwner, editGame])
 
   if (!gameId) {
     return (

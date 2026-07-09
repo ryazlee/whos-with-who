@@ -30,7 +30,7 @@ export default function GuestPlayBanner() {
 
       {expanded ? (
         <Box sx={{ mt: 1.25 }}>
-          <EmailCodeLogin compact />
+          <EmailCodeLogin />
           <Button
             type="button"
             size="small"

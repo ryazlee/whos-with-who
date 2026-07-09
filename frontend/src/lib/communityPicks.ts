@@ -32,10 +32,18 @@ export function flattenCommunityPicks(data: CommunityPerPerson): FlatCommunityPi
   return data.flatMap((row) => normalizeCommunityPicks(row))
 }
 
+export function sortCommunityPicksByFrequency(picks: FlatCommunityPick[]): FlatCommunityPick[] {
+  return [...picks].sort(
+    (a, b) => b.percent - a.percent || a.personId.localeCompare(b.personId),
+  )
+}
+
+export function sortedCommunityPicks(data: CommunityPerPerson): FlatCommunityPick[] {
+  return sortCommunityPicksByFrequency(flattenCommunityPicks(data))
+}
+
 export function topCommunityPicks(data: CommunityPerPerson, limit = 5): FlatCommunityPick[] {
-  return [...flattenCommunityPicks(data)]
-    .sort((a, b) => b.percent - a.percent || a.personId.localeCompare(b.personId))
-    .slice(0, limit)
+  return sortedCommunityPicks(data).slice(0, limit)
 }
 
 export function isCommunityPickCorrect(
