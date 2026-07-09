@@ -4,33 +4,40 @@ Project URL: `https://sedfdxrlxvsouszmaxlg.supabase.co`
 
 ## One-time dashboard setup
 
-1. **Enable Email auth (OTP)**  
-   Authentication → Providers → Email → Enable  
-   Turn on **Confirm email** if you want verified addresses (optional for OTP).
+1. **Enable Email auth**  
+   Authentication → Providers → Email → Enable
 
-2. **Email template for 6-digit codes (not magic links)**  
-   Authentication → Email Templates → **Magic Link**  
-   Supabase uses this template for `signInWithOtp`. To send a numeric code instead of a link, include `{{ .Token }}` in the body and remove `{{ .ConfirmationURL }}`. Example body snippet:
-   ```html
-   <p>Your sign-in code is: <strong>{{ .Token }}</strong></p>
+2. **URL configuration (required for magic-link sign-in)**  
+   On the **free tier**, Supabase only sends magic links (no custom OTP email template). Set:
+
+   Authentication → **URL Configuration**:
+   - **Site URL:** `https://ryazlee.github.io/whos-with-who/`
+   - **Redirect URLs** (add both):
+     - `http://localhost:5173/**`
+     - `https://ryazlee.github.io/whos-with-who/**`
+
+   If links point at `localhost:3000` or another wrong host, the Site URL above is still set incorrectly.
+
+   Optional CLI (URLs only — no email template on free tier):
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref sedfdxrlxvsouszmaxlg
+   npx supabase config push
    ```
-   The app verifies codes with `verifyOtp({ type: 'email' })` — no redirect URL is required.
 
-3. **Site URL** (optional for OTP; needed only if you use magic links or OAuth)  
-   Authentication → URL Configuration:  
-   - Site URL: `https://ryazlee.github.io/whos-with-who/`  
-   - Redirect URLs: add `http://localhost:5173/**` for local dev
+   `config push` updates `site_url` / redirect URLs from `supabase/config.toml`. It will **not** change the email body unless you use custom SMTP or a paid plan.
 
-4. **GitHub integration** (if not done)  
+3. **GitHub integration** (if not done)  
    Project Settings → Integrations → GitHub → connect this repo.  
    Migrations in `supabase/migrations/` apply on push to the linked branch.
 
-5. **GitHub Actions secrets** (for GitHub Pages builds)  
+4. **GitHub Actions secrets** (for GitHub Pages builds)  
    Repository → Settings → Secrets → Actions:
    - `VITE_SUPABASE_URL` = `https://sedfdxrlxvsouszmaxlg.supabase.co`
    - `VITE_SUPABASE_ANON_KEY` = your project's **anon public** key (Settings → API)
 
-6. **Local dev** — copy keys into `frontend/.env.local`:
+5. **Local dev** — copy keys into `frontend/.env.local`:
    ```bash
    cp frontend/.env.example frontend/.env.local
    # paste anon key into VITE_SUPABASE_ANON_KEY
@@ -71,5 +78,5 @@ Migration `20260708160100_seed_demo_games.sql` inserts three playable games with
 
 ## App behavior
 
-- If `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set → app uses Supabase with **email code sign-in**.
+- If `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set → app uses Supabase with **email magic-link sign-in**.
 - If not set → app falls back to in-browser mock data.

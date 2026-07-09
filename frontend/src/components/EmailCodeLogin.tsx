@@ -8,7 +8,9 @@ import {
   Typography,
 } from '@mui/material'
 import SectionCard from './SectionCard'
-import { sendEmailCode, verifyEmailCode } from '../lib/auth'
+import { useAuth } from '../contexts/AuthContext'
+import { sendSignInLink } from '../lib/auth'
+import { getAuthRedirectUrl } from '../lib/authRedirect'
 
 const RESEND_COOLDOWN_SEC = 60
 
@@ -18,9 +20,9 @@ type Props = {
 }
 
 export default function EmailCodeLogin({ compact, onSuccess }: Props) {
-  const [step, setStep] = useState<'email' | 'code'>('email')
+  const { user } = useAuth()
+  const [step, setStep] = useState<'email' | 'sent'>('email')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -32,24 +34,29 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
     return () => window.clearTimeout(timer)
   }, [resendCooldown])
 
-  async function requestCode(targetEmail: string) {
-    const normalized = await sendEmailCode(targetEmail)
+  useEffect(() => {
+    if (step === 'sent' && user) {
+      onSuccess?.()
+    }
+  }, [step, user, onSuccess])
+
+  async function requestLink(targetEmail: string) {
+    const normalized = await sendSignInLink(targetEmail)
     setEmail(normalized)
-    setStep('code')
-    setCode('')
+    setStep('sent')
     setResendCooldown(RESEND_COOLDOWN_SEC)
-    setInfo(`Enter the 6-digit code sent to ${normalized}.`)
+    setInfo(`Open the sign-in link we sent to ${normalized} on this device.`)
   }
 
-  async function handleSendCode(e: React.FormEvent) {
+  async function handleSendLink(e: React.FormEvent) {
     e.preventDefault()
     setBusy(true)
     setError(null)
     setInfo(null)
     try {
-      await requestCode(email)
+      await requestLink(email)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send code.')
+      setError(err instanceof Error ? err.message : 'Could not send sign-in link.')
     } finally {
       setBusy(false)
     }
@@ -60,23 +67,9 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
     setBusy(true)
     setError(null)
     try {
-      await requestCode(email)
+      await requestLink(email)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not resend code.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    setError(null)
-    try {
-      await verifyEmailCode(email, code)
-      onSuccess?.()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid code.')
+      setError(err instanceof Error ? err.message : 'Could not resend link.')
     } finally {
       setBusy(false)
     }
@@ -88,7 +81,7 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
       {info ? <Alert severity="info">{info}</Alert> : null}
 
       {step === 'email' ? (
-        <Box component="form" onSubmit={(e) => void handleSendCode(e)}>
+        <Box component="form" onSubmit={(e) => void handleSendLink(e)}>
           <Stack spacing={1.5}>
             <TextField
               label="Email"
@@ -102,69 +95,44 @@ export default function EmailCodeLogin({ compact, onSuccess }: Props) {
               required
             />
             <Button type="submit" variant="contained" fullWidth disabled={busy} sx={{ py: 1.2 }}>
-              {busy ? 'Sending…' : 'Send sign-in code'}
+              {busy ? 'Sending…' : 'Email sign-in link'}
             </Button>
           </Stack>
         </Box>
       ) : (
-        <Box component="form" onSubmit={(e) => void handleVerify(e)}>
-          <Stack spacing={1.5}>
-            <Typography variant="body2" color="text.secondary">
-              Enter the 6-digit code sent to your email
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Sent to <strong>{email}</strong>
-            </Typography>
-            <TextField
-              label="6-digit code"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="123456"
-              fullWidth
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              autoFocus
-              required
-              slotProps={{
-                htmlInput: {
-                  maxLength: 6,
-                  pattern: '[0-9]{6}',
-                  inputMode: 'numeric',
-                  style: { letterSpacing: '0.25em', fontVariantNumeric: 'tabular-nums' },
-                },
+        <Stack spacing={1.5}>
+          <Typography variant="body2" color="text.secondary">
+            Check your inbox for <strong>{email}</strong> and tap the sign-in link.
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            The link returns you to {getAuthRedirectUrl()}
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <Button
+              type="button"
+              variant="text"
+              color="inherit"
+              disabled={busy}
+              onClick={() => {
+                setStep('email')
+                setError(null)
+                setInfo(null)
+                setResendCooldown(0)
               }}
-            />
-            <Button type="submit" variant="contained" fullWidth disabled={busy || code.length < 6} sx={{ py: 1.2 }}>
-              {busy ? 'Verifying…' : 'Sign in'}
+              sx={{ color: 'text.secondary' }}
+            >
+              Use a different email
             </Button>
-            <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-              <Button
-                type="button"
-                variant="text"
-                color="inherit"
-                disabled={busy}
-                onClick={() => {
-                  setStep('email')
-                  setCode('')
-                  setError(null)
-                  setInfo(null)
-                  setResendCooldown(0)
-                }}
-                sx={{ color: 'text.secondary' }}
-              >
-                Use a different email
-              </Button>
-              <Button
-                type="button"
-                variant="text"
-                disabled={busy || resendCooldown > 0}
-                onClick={() => void handleResend()}
-              >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
-              </Button>
-            </Stack>
+            <Button
+              type="button"
+              variant="text"
+              disabled={busy || resendCooldown > 0}
+              onClick={() => void handleResend()}
+            >
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend link'}
+            </Button>
           </Stack>
-        </Box>
+        </Stack>
       )}
     </Stack>
   )

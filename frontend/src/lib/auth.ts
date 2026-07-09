@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
+import { getAuthRedirectUrl } from './authRedirect'
 import { supabase } from './supabaseClient'
 
 export function isAuthConfigured(): boolean {
@@ -27,15 +28,13 @@ export async function ensureSession(): Promise<Session> {
 }
 
 /**
- * Sends a 6-digit email OTP (not a magic link).
+ * Sends a magic-link email (required on Supabase free tier with default email).
  *
- * Supabase dashboard setup:
- * - Authentication → Providers → Email: enable Email provider
- * - Authentication → Email Templates → Magic Link: include `{{ .Token }}` in the
- *   body and remove `{{ .ConfirmationURL }}` so users receive a numeric code
- * - Do not pass `emailRedirectTo` here — that switches delivery to magic links
+ * Dashboard → Authentication → URL Configuration:
+ * - Site URL: https://ryazlee.github.io/whos-with-who/
+ * - Redirect URLs: http://localhost:5173/** and https://ryazlee.github.io/whos-with-who/**
  */
-export async function sendEmailCode(email: string) {
+export async function sendSignInLink(email: string) {
   if (!supabase) throw new Error('Supabase is not configured.')
 
   const trimmed = email.trim().toLowerCase()
@@ -45,27 +44,11 @@ export async function sendEmailCode(email: string) {
     email: trimmed,
     options: {
       shouldCreateUser: true,
-      // Omit emailRedirectTo so Supabase sends an OTP code email, not a magic link.
+      emailRedirectTo: getAuthRedirectUrl(),
     },
   })
   if (error) throw error
   return trimmed
-}
-
-/** Verifies the 6-digit email OTP and returns the new session. */
-export async function verifyEmailCode(email: string, code: string) {
-  if (!supabase) throw new Error('Supabase is not configured.')
-
-  const token = code.trim().replace(/\D/g, '')
-  if (token.length !== 6) throw new Error('Enter the 6-digit code sent to your email.')
-
-  const { data, error } = await supabase.auth.verifyOtp({
-    email: email.trim().toLowerCase(),
-    token,
-    type: 'email',
-  })
-  if (error) throw error
-  return data.session
 }
 
 export async function signOut() {

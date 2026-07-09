@@ -13,6 +13,7 @@ import MePage from './pages/MePage'
 import NotFoundPage from './pages/NotFoundPage'
 import PageShell from './components/PageShell'
 import EnsureHomeTrailingSlash from './components/EnsureHomeTrailingSlash'
+import AuthRedirectHandler from './components/AuthRedirectHandler'
 import MuiAppProvider from './components/MuiAppProvider'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -25,6 +26,7 @@ function App() {
         <AuthProvider>
           <BrowserRouter basename={basename || undefined}>
           <EnsureHomeTrailingSlash />
+          <AuthRedirectHandler />
           <PageShell>
             <Routes>
             <Route path="/" element={<HomePage />} />
