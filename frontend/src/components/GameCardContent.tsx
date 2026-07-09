@@ -14,6 +14,8 @@ export type GameCardContentProps = {
   showModeInMeta?: boolean
   avatarSize?: number
   avatarMax?: number
+  /** Horizontal faces + body (manage list rows). */
+  layout?: 'stack' | 'inline'
 }
 
 function buildMetaItems(
@@ -54,14 +56,16 @@ export default function GameCardContent({
   showModeInMeta = true,
   avatarSize = 40,
   avatarMax = 3,
+  layout = 'stack',
 }: GameCardContentProps) {
   const stackWidth = faceStackWidth(avatarSize, avatarMax)
   const tags = tagLimit != null ? game.tags.slice(0, tagLimit) : game.tags
   const metaItems = buildMetaItems(game, metaExtras, showModeInMeta)
   const isLargeTitle = titleVariant === 'h6'
+  const isInline = layout === 'inline'
 
   return (
-    <Box className="gameCardStack">
+    <Box className={isInline ? 'gameCardStack gameCardStack--inline' : 'gameCardStack'}>
       <Box className="gameCard__faces" sx={{ width: stackWidth }}>
         <FaceStack
           people={game.previewPeople}

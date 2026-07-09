@@ -2,19 +2,12 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
-  Stack,
-  Tooltip,
   Typography,
 } from '@mui/material'
-import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
@@ -55,80 +48,73 @@ export default function MyGameCard({ game, onDeleted }: Props) {
 
   return (
     <>
-      <Box className="surfaceCard gameCard gameCard--manage">
-        <GameCardContent game={game} tagLimit={3} avatarSize={36} avatarMax={3} />
+      <Box className="meGameRow">
+        <GameCardContent
+          game={game}
+          layout="inline"
+          tagLimit={3}
+          avatarSize={32}
+          avatarMax={3}
+        />
 
-        <Stack spacing={0.75} className="gameCard__manageToolbar">
-          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
-            <Button
-              component={RouterLink}
-              to={gamePlayPath(game.id)}
-              variant="contained"
-              size="small"
-              sx={{ minWidth: 64, px: 1.5, py: 0.5, fontWeight: 600 }}
-            >
-              Play
-            </Button>
-            <Button
-              component={RouterLink}
-              to={`/game/${game.id}/edit`}
-              variant="outlined"
-              size="small"
-              startIcon={<SettingsOutlinedIcon sx={{ fontSize: '1rem !important' }} />}
-              sx={{ px: 1.25, py: 0.5 }}
-            >
-              Settings
-            </Button>
-            <Box sx={{ flex: 1, minWidth: 8 }} />
-            <Tooltip title={copied ? 'Copied!' : 'Copy link'}>
-              <IconButton size="small" onClick={() => void copyLink()} aria-label="Copy link">
-                <ContentCopyOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete game">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => setDeleteOpen(true)}
-                aria-label="Delete game"
-              >
-                <DeleteOutlineOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.25 }}>
-              Visibility
-            </Typography>
-            <Chip
-              label="Public"
-              size="small"
+        <Box className="meGameRow__footer">
+          <Box className="meVisibility" role="group" aria-label="Visibility">
+            <button
+              type="button"
+              className="meVisibility__option"
+              aria-pressed={isPublic}
+              disabled={visibilityMutation.isPending}
               onClick={() => void setVisibility('public')}
+            >
+              Public
+            </button>
+            <button
+              type="button"
+              className="meVisibility__option"
+              aria-pressed={!isPublic}
               disabled={visibilityMutation.isPending}
-              color={isPublic ? 'primary' : 'default'}
-              variant={isPublic ? 'filled' : 'outlined'}
-              sx={{ height: 24, fontSize: '0.7rem', borderRadius: '6px' }}
-            />
-            <Chip
-              label="Unlisted"
-              size="small"
               onClick={() => void setVisibility('unlisted')}
-              disabled={visibilityMutation.isPending}
-              color={!isPublic ? 'primary' : 'default'}
-              variant={!isPublic ? 'filled' : 'outlined'}
-              sx={{ height: 24, fontSize: '0.7rem', borderRadius: '6px' }}
-            />
-          </Stack>
+            >
+              Unlisted
+            </button>
+          </Box>
 
-          {visibilityMutation.error ? (
-            <Alert severity="error" sx={{ py: 0, '& .MuiAlert-message': { py: 0.5 } }}>
-              {visibilityMutation.error instanceof Error
-                ? visibilityMutation.error.message
-                : 'Could not update visibility.'}
-            </Alert>
-          ) : null}
-        </Stack>
+          <Box className="meGameRow__actions" component="nav" aria-label="Game actions">
+            <RouterLink className="meGameRow__action meGameRow__action--primary" to={gamePlayPath(game.id)}>
+              Play
+            </RouterLink>
+            <span className="meGameRow__sep" aria-hidden>
+              ·
+            </span>
+            <RouterLink className="meGameRow__action" to={`/game/${game.id}/edit`}>
+              Edit
+            </RouterLink>
+            <span className="meGameRow__sep" aria-hidden>
+              ·
+            </span>
+            <button type="button" className="meGameRow__action" onClick={() => void copyLink()}>
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+            <span className="meGameRow__sep" aria-hidden>
+              ·
+            </span>
+            <button
+              type="button"
+              className="meGameRow__action meGameRow__action--danger"
+              onClick={() => setDeleteOpen(true)}
+            >
+              Delete
+            </button>
+          </Box>
+        </Box>
+
+        {visibilityMutation.error ? (
+          <Alert severity="error" sx={{ mt: 0.75, py: 0, '& .MuiAlert-message': { py: 0.5 } }}>
+            {visibilityMutation.error instanceof Error
+              ? visibilityMutation.error.message
+              : 'Could not update visibility.'}
+          </Alert>
+        ) : null}
       </Box>
 
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>

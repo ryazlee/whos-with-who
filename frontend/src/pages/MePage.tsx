@@ -1,4 +1,4 @@
-import { Button, Stack, Typography } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import EmailCodeLogin from '../components/EmailCodeLogin'
 import EmptyState from '../components/EmptyState'
 import MyGameCard from '../components/MyGameCard'
@@ -21,7 +21,7 @@ export default function MePage() {
         <EmptyState
           title="Offline mode"
           description="Add Supabase env vars to enable sign-in and saved scores."
-            action={<PrimaryActionButton to="/" label="Browse games" />}
+          action={<PrimaryActionButton to="/" label="Browse games" />}
         />
       </div>
     )
@@ -48,37 +48,31 @@ export default function MePage() {
   }
 
   return (
-    <div className="page">
+    <div className="page mePage">
       <PageHeader title="Me" subtitle="Your account and games." />
 
-      <SectionCard title="Account">
-        <Stack spacing={1.5}>
-          <Typography variant="body2" color="text.secondary">
-            Email
-          </Typography>
-          <Typography variant="body1" sx={{ fontWeight: 500 }}>
-            {user.email}
-          </Typography>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => void signOut()}
-            sx={{ alignSelf: 'flex-start', mt: 0.5 }}
-          >
-            Sign out
-          </Button>
-        </Stack>
-      </SectionCard>
+      <Box className="surfaceCard meAccount">
+        <Typography className="meAccount__email" component="p">
+          {user.email}
+        </Typography>
+        <Button
+          variant="text"
+          size="small"
+          color="inherit"
+          onClick={() => void signOut()}
+          className="meAccount__signOut"
+        >
+          Sign out
+        </Button>
+      </Box>
 
-      <SectionCard
-        title="My games"
-        subtitle="Games you've published"
-        noPadding
-      >
+      <SectionCard title="My games" subtitle="Games you've published" noPadding>
         {gamesLoading ? (
-          <PageLoading />
+          <Box sx={{ px: 2, py: 2 }}>
+            <PageLoading />
+          </Box>
         ) : gamesError ? (
-          <Typography variant="body2" color="error" sx={{ px: 2, pb: 2 }}>
+          <Typography variant="body2" color="error" sx={{ px: 2, py: 1.5 }}>
             {gamesError}
           </Typography>
         ) : games.length === 0 ? (
@@ -88,11 +82,14 @@ export default function MePage() {
             action={<PrimaryActionButton to="/create" label="Create a game" />}
           />
         ) : (
-          <Stack spacing={1} sx={{ px: 1.5, pb: 1.5, pt: 0.25 }}>
-            {games.map((game) => (
-              <MyGameCard key={game.id} game={game} />
+          <Box className="meGameList">
+            {games.map((game, index) => (
+              <Box key={game.id}>
+                {index > 0 ? <Box className="meGameList__divider" role="separator" /> : null}
+                <MyGameCard game={game} />
+              </Box>
             ))}
-          </Stack>
+          </Box>
         )}
       </SectionCard>
     </div>
