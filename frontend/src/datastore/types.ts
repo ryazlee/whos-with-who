@@ -35,6 +35,8 @@ export type GameForPlay = {
   allowedMatchingModes: MatchingMode[]
   people: Person[]
   allowSingleChoice: boolean
+  /** People who are correctly single in this game (from creator relationships). */
+  singleCount: number
 }
 
 export type MatchAllSelections = Record<ID, ID | null>

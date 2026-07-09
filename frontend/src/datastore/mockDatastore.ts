@@ -94,9 +94,10 @@ function makeAttemptId(): ID {
 }
 
 function gameForPlayFromDefinition(game: MockGameDefinition): GameForPlay {
-  const allowSingleChoice = game.correctness.some(
+  const singleCount = game.correctness.filter(
     (c: MatchAllCorrectness) => c.correctPartnerId === null,
-  )
+  ).length
+  const allowSingleChoice = singleCount > 0
   return {
     gameId: game.id,
     title: game.title,
@@ -106,6 +107,7 @@ function gameForPlayFromDefinition(game: MockGameDefinition): GameForPlay {
     allowedMatchingModes: game.allowedMatchingModes ?? [...MATCHING_MODES],
     people: game.people,
     allowSingleChoice,
+    singleCount,
   }
 }
 

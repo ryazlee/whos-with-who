@@ -3,6 +3,7 @@ import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import { useRef, useState } from 'react'
 import { fileToDataUrl } from '../lib/fileImage'
+import { ACCEPTED_IMAGE_ACCEPT, isAcceptedImageFile, supportsFaceBlur } from '../lib/imageMime'
 import FaceBlurEditor from './FaceBlurEditor'
 
 type Props = {
@@ -20,8 +21,8 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setError('Pick an image file')
+    if (!isAcceptedImageFile(file)) {
+      setError('Use JPEG, PNG, WebP, or GIF')
       return
     }
 
@@ -74,14 +75,24 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
               <CloseOutlinedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
-          <Button
-            size="small"
-            variant="text"
-            onClick={() => setBlurOpen(true)}
-            sx={{ mt: 0.35, px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500 }}
-          >
-            Blur faces
-          </Button>
+          {supportsFaceBlur(value) ? (
+            <Button
+              size="small"
+              variant="text"
+              onClick={() => setBlurOpen(true)}
+              sx={{ mt: 0.35, px: 0, minWidth: 0, fontSize: '0.75rem', fontWeight: 500 }}
+            >
+              Blur faces
+            </Button>
+          ) : (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mt: 0.35, fontSize: '0.65rem', lineHeight: 1.3 }}
+            >
+              GIF
+            </Typography>
+          )}
         </Box>
       ) : (
         <IconButton
@@ -105,9 +116,15 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
         </Typography>
       ) : null}
 
-      <input ref={inputRef} type="file" accept="image/*" hidden onChange={(e) => void handleFilePick(e)} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ACCEPTED_IMAGE_ACCEPT}
+        hidden
+        onChange={(e) => void handleFilePick(e)}
+      />
 
-      {value && blurOpen ? (
+      {value && blurOpen && supportsFaceBlur(value) ? (
         <FaceBlurEditor
           dataUrl={value}
           open={blurOpen}

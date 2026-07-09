@@ -258,7 +258,7 @@ html.theme-dark .gameCard {
   padding: 2px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--border-light);
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
 }
 
 .meVisibility__option {
@@ -275,14 +275,18 @@ html.theme-dark .gameCard {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.meVisibility__option[aria-pressed='true'] {
-  background: var(--surface);
+.meVisibility__option:hover:not(:disabled) {
   color: var(--text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-html.theme-dark .meVisibility__option[aria-pressed='true'] {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+.meVisibility__option[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--surface);
+}
+
+.meVisibility__option[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--text);
+  color: var(--surface);
 }
 
 .meVisibility__option:disabled {

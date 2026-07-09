@@ -64,27 +64,49 @@ function PersonThumb({ person, size = 40 }: { person: PairingPerson; size?: numb
 export function PairingProgress({
   total,
   assigned,
+  singlesInGame,
+  pairsInGame,
   hint,
 }: {
   total: number
   assigned: number
+  /** Singles defined by the game creator (not player progress). */
+  singlesInGame?: number
+  pairsInGame?: number
   hint?: string
 }) {
   const remaining = Math.max(0, total - assigned)
   const pct = total > 0 ? Math.round((assigned / total) * 100) : 0
 
+  const gameShape =
+    singlesInGame != null && pairsInGame != null
+      ? singlesInGame === 0
+        ? `${pairsInGame} ${pairsInGame === 1 ? 'couple' : 'couples'} — pair everyone`
+        : pairsInGame === 0
+          ? `${singlesInGame} ${singlesInGame === 1 ? 'single' : 'singles'} in this game`
+          : `${pairsInGame} ${pairsInGame === 1 ? 'pair' : 'pairs'} · ${singlesInGame} ${singlesInGame === 1 ? 'single' : 'singles'}`
+      : null
+
+  const status =
+    remaining > 0
+      ? hint ?? `${remaining} ${remaining === 1 ? 'person' : 'people'} left`
+      : 'Everyone matched'
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mb: 0.75 }}>
+      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
         <Typography variant="body2" color="text.secondary">
-          {remaining > 0
-            ? hint ?? `${remaining} ${remaining === 1 ? 'person' : 'people'} left to match`
-            : 'Everyone matched'}
+          {status}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
           {assigned}/{total}
         </Typography>
       </Box>
+      {gameShape ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, lineHeight: 1.4 }}>
+          {gameShape}
+        </Typography>
+      ) : null}
       <LinearProgress
         variant="determinate"
         value={pct}

@@ -4,6 +4,7 @@ import type { MatchAllSelections } from '../datastore/types'
 import type { Person } from '../game/types'
 import {
   clearPerson,
+  countPairingProgress,
   selectionsToTapPairAssigned,
   setPair,
   setSingle,
@@ -16,6 +17,8 @@ import PersonAvatar from './PersonAvatar'
 type Props = {
   people: Person[]
   allowSingleChoice: boolean
+  singlesInGame: number
+  pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
 }
@@ -36,7 +39,14 @@ function pairKey(a: string, b: string) {
   return [a, b].sort().join(':')
 }
 
-export default function DrawLinesPlay({ people, allowSingleChoice, selections, onChange }: Props) {
+export default function DrawLinesPlay({
+  people,
+  allowSingleChoice,
+  singlesInGame,
+  pairsInGame,
+  selections,
+  onChange,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(360)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -71,7 +81,7 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
 
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.person.id, n])), [nodes])
 
-  const assigned = useMemo(
+  const assignedMap = useMemo(
     () => selectionsToTapPairAssigned(people.map((p) => p.id), selections),
     [people, selections],
   )
@@ -84,7 +94,7 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
 
   function connectPeople(fromId: string, toId: string) {
     if (fromId === toId) return
-    pushAssigned(setPair(assigned, fromId, toId))
+    pushAssigned(setPair(assignedMap, fromId, toId))
     setSelectedId(null)
     setDragFromId(null)
     setDragPoint(null)
@@ -153,7 +163,7 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
 
   function handleMarkSingle() {
     if (!selectedId || !allowSingleChoice) return
-    pushAssigned(setSingle(assigned, selectedId))
+    pushAssigned(setSingle(assignedMap, selectedId))
     setSelectedId(null)
     setDragFromId(null)
     setDragPoint(null)
@@ -165,7 +175,7 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
 
   for (const p of people) {
     if (seen.has(p.id)) continue
-    const v = assigned[p.id]
+    const v = assignedMap[p.id]
     if (v === 'single') {
       singles.push(p)
       seen.add(p.id)
@@ -179,7 +189,10 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
     }
   }
 
-  const assignedCount = pairs.length * 2 + singles.length
+  const { assigned: assignedCount } = countPairingProgress(
+    people.map((p) => p.id),
+    assignedMap,
+  )
   const pairedIds = useMemo(() => {
     const ids = new Set<string>()
     for (const [a, b] of pairs) {
@@ -195,6 +208,8 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
       <PairingProgress
         total={people.length}
         assigned={assignedCount}
+        singlesInGame={singlesInGame}
+        pairsInGame={pairsInGame}
         hint={
           dragFromId
             ? 'Release on a partner to connect'
@@ -302,7 +317,7 @@ export default function DrawLinesPlay({ people, allowSingleChoice, selections, o
           variant="text"
           color="inherit"
           onClick={() => {
-            const next = { ...assigned }
+            const next = { ...assignedMap }
             clearPerson(next, selectedId)
             pushAssigned(next)
             setSelectedId(null)

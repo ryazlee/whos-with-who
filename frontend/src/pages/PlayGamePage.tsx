@@ -13,6 +13,7 @@ import TapPairsPlay from '../components/TapPairsPlay'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import type { MatchingMode } from '../game/matchingModes'
 import { normalizeAllowedModes } from '../game/matchingModes'
+import { gamePairingShape } from '../game/pairMatching'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
@@ -56,6 +57,8 @@ export default function PlayGamePage() {
 
   const people = game?.people ?? []
   const allowSingleChoice = game?.allowSingleChoice ?? true
+  const singleCount = game?.singleCount ?? 0
+  const { pairCount: pairsInGame } = gamePairingShape(people.length, singleCount)
   const peopleIds = useMemo(() => people.map((p) => p.id), [people])
   const allowedModes = useMemo(
     () => normalizeAllowedModes(game?.allowedMatchingModes),
@@ -118,6 +121,8 @@ export default function PlayGamePage() {
           <DrawLinesPlay
             people={people}
             allowSingleChoice={allowSingleChoice}
+            singlesInGame={singleCount}
+            pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
           />
@@ -125,6 +130,8 @@ export default function PlayGamePage() {
           <TapPairsPlay
             people={people}
             allowSingleChoice={allowSingleChoice}
+            singlesInGame={singleCount}
+            pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
           />
@@ -132,6 +139,8 @@ export default function PlayGamePage() {
           <MatchAllPlay
             people={people}
             allowSingleChoice={allowSingleChoice}
+            singlesInGame={singleCount}
+            pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
           />

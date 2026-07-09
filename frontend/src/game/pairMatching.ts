@@ -80,13 +80,66 @@ export function tapPairsToSelections(
   const selections: MatchAllSelections = {}
   for (const id of peopleIds) {
     const v = assigned[id]
-    if (v === 'single' || v === null) {
+    if (v === 'single') {
       selections[id] = null
-    } else {
+    } else if (typeof v === 'string') {
       selections[id] = v
     }
+    // Unassigned (null) — omit from selections so they are not treated as singles.
   }
   return selections
+}
+
+export type PairingProgressCounts = {
+  pairCount: number
+  singleCount: number
+  assigned: number
+}
+
+/** Mutual pairs + explicit singles only (never unassigned). */
+export function countPairingProgress(
+  peopleIds: ID[],
+  assigned: Record<ID, TapPairAssignment>,
+): PairingProgressCounts {
+  let pairCount = 0
+  let singleCount = 0
+  const seen = new Set<ID>()
+
+  for (const id of peopleIds) {
+    if (seen.has(id)) continue
+    const v = assigned[id]
+    if (v === 'single') {
+      singleCount += 1
+      seen.add(id)
+    } else if (typeof v === 'string') {
+      if (assigned[v] === id) {
+        pairCount += 1
+        seen.add(id)
+        seen.add(v)
+      }
+    }
+  }
+
+  return {
+    pairCount,
+    singleCount,
+    assigned: pairCount * 2 + singleCount,
+  }
+}
+
+export function countMatchAllProgress(
+  peopleIds: ID[],
+  selections: MatchAllSelections,
+): PairingProgressCounts {
+  return countPairingProgress(peopleIds, selectionsToTapPairAssigned(peopleIds, selections))
+}
+
+export function gamePairingShape(totalPeople: number, singlesInGame: number) {
+  const singleCount = Math.max(0, Math.min(totalPeople, singlesInGame))
+  return {
+    singleCount,
+    pairCount: Math.max(0, (totalPeople - singleCount) / 2),
+  }
 }
 
 export function matchAllComplete(

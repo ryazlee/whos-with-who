@@ -1,5 +1,6 @@
 import { Box, Chip, Typography } from '@mui/material'
 import type { GameSummary } from '../datastore/types'
+import { selectionChipSx } from '../lib/selectionChipSx'
 
 type Visibility = GameSummary['visibility']
 
@@ -8,18 +9,6 @@ type Props = {
   onChange: (value: Visibility) => void
   disabled?: boolean
 }
-
-const pillSx = (active: boolean) => ({
-  height: 32,
-  fontSize: '0.82rem',
-  fontWeight: 500,
-  borderRadius: '99px',
-  border: '1px solid',
-  borderColor: active ? 'primary.main' : 'divider',
-  bgcolor: active ? 'primary.main' : 'transparent',
-  color: active ? 'primary.contrastText' : 'text.secondary',
-  opacity: 1,
-})
 
 export default function GameVisibilityPicker({ value, onChange, disabled }: Props) {
   return (
@@ -33,14 +22,14 @@ export default function GameVisibilityPicker({ value, onChange, disabled }: Prop
           size="small"
           disabled={disabled}
           onClick={() => onChange('public')}
-          sx={pillSx(value === 'public')}
+          sx={selectionChipSx(value === 'public', disabled)}
         />
         <Chip
           label="Unlisted"
           size="small"
           disabled={disabled}
           onClick={() => onChange('unlisted')}
-          sx={pillSx(value === 'unlisted')}
+          sx={selectionChipSx(value === 'unlisted', disabled)}
         />
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, lineHeight: 1.45 }}>

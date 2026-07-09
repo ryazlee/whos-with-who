@@ -1,3 +1,4 @@
+import { imageExtensionForDataUrl, imageExtensionForMime } from './imageMime'
 import { supabase } from './supabaseClient'
 
 export async function uploadGamePersonImage(
@@ -9,12 +10,15 @@ export async function uploadGamePersonImage(
 
   const res = await fetch(dataUrl)
   const blob = await res.blob()
-  const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg'
+  const mime = blob.type || 'image/jpeg'
+  const ext = dataUrl.startsWith('data:')
+    ? imageExtensionForDataUrl(dataUrl)
+    : imageExtensionForMime(mime)
   const path = `${userId}/${personId}.${ext}`
 
   const { error } = await supabase.storage.from('game-images').upload(path, blob, {
     upsert: true,
-    contentType: blob.type || 'image/jpeg',
+    contentType: mime,
   })
   if (error) throw error
 

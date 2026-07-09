@@ -135,7 +135,12 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
       p_game_id: uuid,
     })
 
+    const { data: singleCountRaw, error: singleCountError } = await sb.rpc('game_single_count', {
+      p_game_id: uuid,
+    })
+
     const allowSingleChoice = allowError ? true : Boolean(allowSingle)
+    const singleCount = singleCountError ? (allowSingleChoice ? 1 : 0) : Number(singleCountRaw ?? 0)
 
     return {
       gameId,
@@ -152,6 +157,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
         imageUrl: resolveImageUrl(p.primary_image_url, p.name),
       })),
       allowSingleChoice,
+      singleCount,
     }
   }
 

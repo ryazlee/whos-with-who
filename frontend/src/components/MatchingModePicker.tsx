@@ -6,19 +6,7 @@ import {
   normalizeAllowedModes,
 } from '../game/matchingModes'
 import { setPreferredMatchingMode } from '../lib/matchingModePreference'
-
-const pillSx = (active: boolean) => ({
-  height: 36,
-  fontSize: '0.85rem',
-  fontWeight: 500,
-  borderRadius: '99px',
-  cursor: 'pointer',
-  border: '1px solid',
-  borderColor: active ? 'primary.main' : 'divider',
-  bgcolor: active ? 'primary.main' : 'transparent',
-  color: active ? 'primary.contrastText' : 'text.secondary',
-  '& .MuiChip-label': { px: 1.25 },
-})
+import { selectionChipSxTall } from '../lib/selectionChipSx'
 
 type Props = {
   value: MatchingMode
@@ -39,7 +27,7 @@ export default function MatchingModePicker({ value, onChange, modes }: Props) {
             setPreferredMatchingMode(mode)
             onChange(mode)
           }}
-          sx={pillSx(value === mode)}
+          sx={selectionChipSxTall(value === mode)}
         />
       ))}
     </Box>
@@ -67,7 +55,7 @@ export function MatchingModeBar({
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
           Matching style
         </Typography>
-        <Chip label={MATCHING_MODE_LABELS[lockedMode]} sx={pillSx(true)} />
+        <Chip label={MATCHING_MODE_LABELS[lockedMode]} sx={selectionChipSxTall(true)} />
       </Box>
     )
   }
@@ -78,7 +66,7 @@ export function MatchingModeBar({
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
           Matching style
         </Typography>
-        <Chip label={MATCHING_MODE_LABELS[modes[0]]} sx={pillSx(true)} />
+        <Chip label={MATCHING_MODE_LABELS[modes[0]]} sx={selectionChipSxTall(true)} />
       </Box>
     )
   }

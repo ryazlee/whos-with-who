@@ -5,6 +5,7 @@ import type { Person } from '../game/types'
 import {
   availablePartnerIds,
   clearMatchAllPair,
+  countMatchAllProgress,
   setMatchAllPartner,
 } from '../game/pairMatching'
 import {
@@ -20,6 +21,8 @@ import {
 type Props = {
   people: Person[]
   allowSingleChoice: boolean
+  singlesInGame: number
+  pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
 }
@@ -28,7 +31,14 @@ function toPairingPerson(p: Person): PairingPerson {
   return { id: p.id, name: p.name, imageUrl: p.imageUrl }
 }
 
-export default function MatchAllPlay({ people, allowSingleChoice, selections, onChange }: Props) {
+export default function MatchAllPlay({
+  people,
+  allowSingleChoice,
+  singlesInGame,
+  pairsInGame,
+  selections,
+  onChange,
+}: Props) {
   const peopleIds = useMemo(() => people.map((p) => p.id), [people])
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
 
@@ -67,14 +77,16 @@ export default function MatchAllPlay({ people, allowSingleChoice, selections, on
     [people, selections],
   )
 
-  const assignedCount = pairs.length * 2 + singles.length
+  const { assigned } = countMatchAllProgress(peopleIds, selections)
   const remainingPeople = editablePeople.map(toPairingPerson)
 
   return (
     <Stack spacing={2}>
       <PairingProgress
         total={people.length}
-        assigned={assignedCount}
+        assigned={assigned}
+        singlesInGame={singlesInGame}
+        pairsInGame={pairsInGame}
         hint={allowSingleChoice ? 'Match everyone or mark singles' : 'Match everyone into pairs'}
       />
 

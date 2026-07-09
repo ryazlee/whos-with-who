@@ -12,20 +12,7 @@ import {
   MATCHING_MODE_LABELS,
   MATCHING_MODES,
 } from '../game/matchingModes'
-
-const pillSx = (active: boolean, disabled?: boolean) => ({
-  height: 36,
-  fontSize: '0.85rem',
-  fontWeight: 500,
-  borderRadius: '99px',
-  cursor: disabled ? 'default' : 'pointer',
-  border: '1px solid',
-  borderColor: active ? 'primary.main' : 'divider',
-  bgcolor: active ? 'primary.main' : 'transparent',
-  color: active ? 'primary.contrastText' : 'text.secondary',
-  opacity: disabled ? 0.55 : 1,
-  '& .MuiChip-label': { px: 1.25 },
-})
+import { selectionChipSxTall } from '../lib/selectionChipSx'
 
 type Props = {
   modeLocked: boolean
@@ -55,11 +42,11 @@ function ModeOptionCard({
       disabled={disabled}
       sx={{
         border: '1px solid',
-        borderColor: active ? 'primary.main' : 'divider',
+        borderColor: active ? 'var(--text)' : 'var(--border)',
         borderRadius: 2,
         p: 1.25,
         textAlign: 'left',
-        bgcolor: active ? 'action.selected' : 'transparent',
+        bgcolor: active ? 'color-mix(in srgb, var(--text) 8%, var(--surface))' : 'transparent',
         cursor: onClick && !disabled ? 'pointer' : 'default',
         width: '100%',
       }}
@@ -143,7 +130,7 @@ export default function CreatorMatchingModeSettings({
                 key={mode}
                 label={MATCHING_MODE_LABELS[mode]}
                 onClick={() => toggleAllowedMode(mode)}
-                sx={pillSx(allowedModes.includes(mode))}
+                sx={selectionChipSxTall(allowedModes.includes(mode))}
               />
             ))}
           </Box>

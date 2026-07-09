@@ -4,6 +4,7 @@ import type { MatchAllSelections } from '../datastore/types'
 import type { Person } from '../game/types'
 import {
   clearPerson,
+  countPairingProgress,
   selectionsToTapPairAssigned,
   setPair,
   setSingle,
@@ -16,14 +17,23 @@ import PersonAvatar from './PersonAvatar'
 type Props = {
   people: Person[]
   allowSingleChoice: boolean
+  singlesInGame: number
+  pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
 }
 
-export default function TapPairsPlay({ people, allowSingleChoice, selections, onChange }: Props) {
+export default function TapPairsPlay({
+  people,
+  allowSingleChoice,
+  singlesInGame,
+  pairsInGame,
+  selections,
+  onChange,
+}: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const assigned = useMemo(
+  const assignedMap = useMemo(
     () => selectionsToTapPairAssigned(people.map((p) => p.id), selections),
     [people, selections],
   )
@@ -45,13 +55,13 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
       return
     }
 
-    pushAssigned(setPair(assigned, selectedId, personId))
+    pushAssigned(setPair(assignedMap, selectedId, personId))
     setSelectedId(null)
   }
 
   function handleMarkSingle() {
     if (!selectedId || !allowSingleChoice) return
-    pushAssigned(setSingle(assigned, selectedId))
+    pushAssigned(setSingle(assignedMap, selectedId))
     setSelectedId(null)
   }
 
@@ -62,7 +72,7 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
 
   for (const p of people) {
     if (seen.has(p.id)) continue
-    const v = assigned[p.id]
+    const v = assignedMap[p.id]
     if (v === null || v === undefined) {
       unassigned.push(p)
       seen.add(p.id)
@@ -79,13 +89,18 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
     }
   }
 
-  const assignedCount = pairs.length * 2 + singles.length
+  const { assigned: assignedCount } = countPairingProgress(
+    people.map((p) => p.id),
+    assignedMap,
+  )
 
   return (
     <Stack spacing={2}>
       <PairingProgress
         total={people.length}
         assigned={assignedCount}
+        singlesInGame={singlesInGame}
+        pairsInGame={pairsInGame}
         hint={selectedId ? `Pair with ${peopleById.get(selectedId)?.name}` : 'Tap one person, then their partner'}
       />
 
@@ -194,7 +209,7 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           variant="text"
           color="inherit"
           onClick={() => {
-            const next = { ...assigned }
+            const next = { ...assignedMap }
             clearPerson(next, selectedId)
             pushAssigned(next)
             setSelectedId(null)
