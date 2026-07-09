@@ -215,9 +215,7 @@ export default function DrawLinesPlay({
         hint={
           readOnly
             ? 'Your submitted picks'
-            : dragFromId
-              ? 'Release on a partner to connect'
-              : 'Drag a line between two people, or tap one then another'
+            : 'Drag a line between two people, or tap one then another'
         }
       />
 

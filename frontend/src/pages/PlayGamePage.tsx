@@ -17,6 +17,7 @@ import { normalizeAllowedModes } from '../game/matchingModes'
 import { gamePairingShape } from '../game/pairMatching'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { selectionsFromAttemptResult } from '../lib/attemptSelections'
+import { applyAutoSinglesIfNeeded } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
 
@@ -90,6 +91,13 @@ export default function PlayGamePage() {
     if (!game || isReview) return
     setSelections(emptySelections(activeMode))
   }, [activeMode]) // eslint-disable-line react-hooks/exhaustive-deps -- reset picks when switching mode
+
+  useEffect(() => {
+    if (!game || isReview) return
+    setSelections((current) =>
+      applyAutoSinglesIfNeeded(peopleIds, singleCount, current, allowSingleChoice),
+    )
+  }, [game, isReview, peopleIds, singleCount, allowSingleChoice, selections])
 
   if (attemptLoading || loading) {
     return <div className="page"><PageLoading /></div>

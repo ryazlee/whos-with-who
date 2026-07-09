@@ -104,11 +104,7 @@ export default function TapPairsPlay({
         singlesInGame={singlesInGame}
         pairsInGame={pairsInGame}
         hint={
-          readOnly
-            ? 'Your submitted picks'
-            : selectedId
-              ? `Pair with ${peopleById.get(selectedId)?.name}`
-              : 'Tap one person, then their partner'
+          readOnly ? 'Your submitted picks' : 'Tap one person, then their partner'
         }
       />
 

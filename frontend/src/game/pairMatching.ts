@@ -232,3 +232,41 @@ export function clearMatchAllPair(
   }
   return next
 }
+
+/** People not yet in a mutual pair or marked single. */
+export function unassignedPeopleIds(
+  peopleIds: ID[],
+  selections: MatchAllSelections,
+): ID[] {
+  return peopleIds.filter((id) => {
+    if (!(id in selections)) return true
+    const partner = selections[id]
+    if (partner !== null && partner !== undefined && selections[partner] === id) {
+      return false
+    }
+    if (partner === null) return false
+    return true
+  })
+}
+
+/** When only singles remain, mark them automatically. */
+export function applyAutoSinglesIfNeeded(
+  peopleIds: ID[],
+  singlesInGame: number,
+  selections: MatchAllSelections,
+  allowSingleChoice: boolean,
+): MatchAllSelections {
+  if (!allowSingleChoice || singlesInGame <= 0) return selections
+
+  const { singleCount, assigned } = countMatchAllProgress(peopleIds, selections)
+  const remaining = peopleIds.length - assigned
+  const singlesStillNeeded = singlesInGame - singleCount
+
+  if (remaining <= 0 || remaining !== singlesStillNeeded) return selections
+
+  const next = { ...selections }
+  for (const id of unassignedPeopleIds(peopleIds, next)) {
+    next[id] = null
+  }
+  return next
+}
