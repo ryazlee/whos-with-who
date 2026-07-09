@@ -16,6 +16,9 @@ export type MockGameDefinition = {
   attemptCount: number
   ownerMatchingMode: MatchingMode
   modeLocked: boolean
+  allowedMatchingModes?: MatchingMode[]
+  authorName?: string | null
+  publishedAt?: string | null
   people: Array<{ id: string; name: string; imageUrl: string }>
   correctness: MatchAllCorrectness[]
   communityAttempts: CommunityGuess[]
@@ -33,8 +36,11 @@ export const MOCK_GAMES: MockGameDefinition[] = [
     tags: ['friend_group', 'singles_mixed', 'quick_round'],
     visibility: 'public',
     attemptCount: 128,
+    authorName: 'Rylee',
+    publishedAt: '2026-03-04T12:00:00.000Z',
     ownerMatchingMode: 'tap_pairs',
     modeLocked: false,
+    allowedMatchingModes: ['tap_pairs', 'match_all', 'draw_lines'],
     people: [
       person('a', 'Alex', 'alex'),
       person('b', 'Brooke', 'brooke'),
@@ -63,6 +69,8 @@ export const MOCK_GAMES: MockGameDefinition[] = [
     tags: ['reunion', 'long_round'],
     visibility: 'public',
     attemptCount: 84,
+    authorName: 'College Crew',
+    publishedAt: '2026-02-18T12:00:00.000Z',
     ownerMatchingMode: 'match_all',
     modeLocked: true,
     people: [
@@ -98,6 +106,8 @@ export const MOCK_GAMES: MockGameDefinition[] = [
     tags: ['work_friends', 'quick_round'],
     visibility: 'unlisted',
     attemptCount: 23,
+    authorName: 'Office Admin',
+    publishedAt: '2026-06-22T12:00:00.000Z',
     ownerMatchingMode: 'tap_pairs',
     modeLocked: true,
     people: [

@@ -1,6 +1,10 @@
 import { Box, Chip, Typography } from '@mui/material'
 import type { MatchingMode } from '../game/matchingModes'
-import { MATCHING_MODE_LABELS, MATCHING_MODES } from '../game/matchingModes'
+import {
+  MATCHING_MODE_LABELS,
+  MATCHING_MODES,
+  normalizeAllowedModes,
+} from '../game/matchingModes'
 import { setPreferredMatchingMode } from '../lib/matchingModePreference'
 
 const pillSx = (active: boolean) => ({
@@ -19,12 +23,15 @@ const pillSx = (active: boolean) => ({
 type Props = {
   value: MatchingMode
   onChange: (mode: MatchingMode) => void
+  modes?: MatchingMode[]
 }
 
-export default function MatchingModePicker({ value, onChange }: Props) {
+export default function MatchingModePicker({ value, onChange, modes }: Props) {
+  const options = modes ?? MATCHING_MODES
+
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-      {MATCHING_MODES.map((mode) => (
+      {options.map((mode) => (
         <Chip
           key={mode}
           label={MATCHING_MODE_LABELS[mode]}
@@ -40,23 +47,38 @@ export default function MatchingModePicker({ value, onChange }: Props) {
 }
 
 export function MatchingModeBar({
-  ownerMode,
+  allowedModes,
   modeLocked,
+  lockedMode,
   activeMode,
   onModeChange,
 }: {
-  ownerMode: MatchingMode
+  allowedModes: MatchingMode[]
   modeLocked: boolean
+  lockedMode: MatchingMode
   activeMode: MatchingMode
   onModeChange: (m: MatchingMode) => void
 }) {
+  const modes = normalizeAllowedModes(allowedModes)
+
   if (modeLocked) {
     return (
       <Box className="surfaceCard" sx={{ px: 1.5, py: 1.25 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
           Matching style
         </Typography>
-        <Chip label={MATCHING_MODE_LABELS[ownerMode]} sx={pillSx(true)} />
+        <Chip label={MATCHING_MODE_LABELS[lockedMode]} sx={pillSx(true)} />
+      </Box>
+    )
+  }
+
+  if (modes.length === 1) {
+    return (
+      <Box className="surfaceCard" sx={{ px: 1.5, py: 1.25 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+          Matching style
+        </Typography>
+        <Chip label={MATCHING_MODE_LABELS[modes[0]]} sx={pillSx(true)} />
       </Box>
     )
   }
@@ -66,7 +88,7 @@ export function MatchingModeBar({
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
         How do you want to match?
       </Typography>
-      <MatchingModePicker value={activeMode} onChange={onModeChange} />
+      <MatchingModePicker value={activeMode} onChange={onModeChange} modes={modes} />
     </Box>
   )
 }

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import {
   BottomNavigation,
   BottomNavigationAction,
-  Box,
   IconButton,
   Tooltip,
 } from '@mui/material'
@@ -46,25 +45,17 @@ function immersiveTitle(path: string): string {
   return ''
 }
 
-function shellLayoutClass(path: string, immersive: boolean): string {
-  if (immersive || path === '/create' || path.startsWith('/me')) {
-    return 'shellInner shellInner--focus'
-  }
-  return 'shellInner shellInner--wide'
-}
-
 export default function PageShell({ children }: Props) {
   const path = useLocation().pathname
   const navigate = useNavigate()
   const { mode, toggleMode } = useThemeMode()
   const activeKey = activeKeyFromPath(path)
   const immersive = isImmersivePath(path)
-  const shellClass = shellLayoutClass(path, immersive)
 
   return (
     <div className={immersive ? 'appShell appShell--immersive' : 'appShell'}>
       <header className="topBar">
-        <div className={`${shellClass} topBarInner`}>
+        <div className="shellInner topBarInner">
           {immersive ? (
             <>
               <IconButton
@@ -75,20 +66,21 @@ export default function PageShell({ children }: Props) {
                 <ArrowBackOutlinedIcon />
               </IconButton>
               <span className="immersiveTitle">{immersiveTitle(path)}</span>
-              <IconButton
-                onClick={() => toggleMode()}
-                aria-label="Toggle theme"
-                sx={{ color: 'text.secondary', mr: -0.5, display: { xs: 'none', md: 'inline-flex' } }}
-              >
-                {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
-              </IconButton>
-              <Box sx={{ width: 40, display: { xs: 'block', md: 'none' } }} />
+              <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+                <IconButton
+                  onClick={() => toggleMode()}
+                  aria-label="Toggle theme"
+                  sx={{ color: 'text.secondary', mr: -0.5 }}
+                >
+                  {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
             </>
           ) : (
             <>
               <Link to="/" className="brand">
                 <OwlMascot size={28} />
-                <span className="brandText brandText--hideMobile">Who&apos;s With Who?</span>
+                <span className="brandText">Who&apos;s With Who?</span>
               </Link>
 
               <nav className="desktopNav" aria-label="Main">
@@ -119,7 +111,7 @@ export default function PageShell({ children }: Props) {
       </header>
 
       <main>
-        <div className={shellClass}>{children}</div>
+        <div className="shellInner">{children}</div>
       </main>
 
       {!immersive ? (

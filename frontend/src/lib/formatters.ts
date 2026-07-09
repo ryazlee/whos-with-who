@@ -9,3 +9,15 @@ export function formatAttemptCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}k`
   return String(n)
 }
+
+export function formatPostedDate(isoDate: string | null | undefined): string | null {
+  if (!isoDate) return null
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return null
+  const label = date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  return `Posted ${label}`
+}

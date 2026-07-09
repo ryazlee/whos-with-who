@@ -1,8 +1,9 @@
-import { Button, Stack, Typography } from '@mui/material'
-import { Link as RouterLink, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import GameSummaryHero from '../components/GameSummaryHero'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
-import MatchingModeChip from '../components/MatchingModeChip'
+import PrimaryActionButton from '../components/PrimaryActionButton'
+import StickyActionBar from '../components/StickyActionBar'
 import { getCompletedAttemptForGame } from '../lib/localAttempts'
 import { useGameSummary } from '../hooks/useGame'
 
@@ -27,32 +28,17 @@ export default function GameLobbyPage() {
   }
 
   return (
-    <div className="page">
-      <Typography variant="h5" color="text.primary">
-        {game.title}
-      </Typography>
-      <Stack direction="row" spacing={1} sx={{ mt: 0.5, alignItems: 'center' }}>
-        <MatchingModeChip mode={game.ownerMatchingMode} />
-        {game.modeLocked ? (
-          <Typography variant="caption" color="text.secondary">
-            locked
-          </Typography>
-        ) : null}
-      </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        {game.peopleCount} people · {game.attemptCount} plays
-      </Typography>
-      <Button
-        component={RouterLink}
-        to={`/game/${game.id}/play`}
-        variant="contained"
-        color="primary"
-        fullWidth
-        size="large"
-        sx={{ borderRadius: 2, py: 1.5, mt: 2 }}
-      >
-        Play
-      </Button>
+    <div className="page page--withActionBar">
+      <GameSummaryHero game={game} />
+
+      <StickyActionBar>
+        <div className="stickyActionBarInner playSubmitDock">
+          <PrimaryActionButton
+            to={`/game/${game.id}/play`}
+            label="Play"
+          />
+        </div>
+      </StickyActionBar>
     </div>
   )
 }

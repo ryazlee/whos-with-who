@@ -99,7 +99,7 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
               display: 'flex',
               flexWrap: 'wrap',
               gap: 2,
-              justifyContent: { xs: 'center', md: 'flex-start' },
+              justifyContent: 'center',
             }}
           >
             {pairs.map(([a, b]) => (
@@ -135,14 +135,8 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: {
-                xs: 'repeat(auto-fill, minmax(96px, 1fr))',
-                md: 'repeat(auto-fill, minmax(108px, 120px))',
-              },
+              gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
               gap: 1.5,
-              maxWidth: { md: 480 },
-              mx: { md: 'auto' },
-              justifyContent: { md: 'center' },
             }}
           >
             {singles.map((p) => (
@@ -167,14 +161,8 @@ export default function TapPairsPlay({ people, allowSingleChoice, selections, on
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: {
-                xs: 'repeat(auto-fill, minmax(96px, 1fr))',
-                md: 'repeat(auto-fill, minmax(108px, 120px))',
-              },
+              gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
               gap: 1.5,
-              maxWidth: { md: 560 },
-              mx: { md: 'auto' },
-              justifyContent: { md: 'center' },
             }}
           >
             {unassigned.map((p) => (

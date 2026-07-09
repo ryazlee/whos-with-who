@@ -1,15 +1,18 @@
 import { Button, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
 import EmailCodeLogin from '../components/EmailCodeLogin'
 import EmptyState from '../components/EmptyState'
+import MyGameCard from '../components/MyGameCard'
 import PageHeader from '../components/PageHeader'
+import PageLoading from '../components/PageLoading'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
 import { useAuth } from '../contexts/AuthContext'
+import { useMyGames } from '../hooks/useGame'
 import { signOut } from '../lib/auth'
-import PageLoading from '../components/PageLoading'
 
 export default function MePage() {
   const { user, loading, isConfigured } = useAuth()
+  const { games, loading: gamesLoading, error: gamesError } = useMyGames()
 
   if (!isConfigured) {
     return (
@@ -18,11 +21,7 @@ export default function MePage() {
         <EmptyState
           title="Offline mode"
           description="Add Supabase env vars to enable sign-in and saved scores."
-          action={
-            <Button component={RouterLink} to="/" variant="outlined">
-              Browse games
-            </Button>
-          }
+            action={<PrimaryActionButton to="/" label="Browse games" />}
         />
       </div>
     )
@@ -41,7 +40,7 @@ export default function MePage() {
       <div className="page">
         <PageHeader
           title="Sign in"
-          subtitle="Use your email to save scores and track games you've played."
+          subtitle="Use your email to save scores and manage games you've created."
         />
         <EmailCodeLogin />
       </div>
@@ -50,7 +49,7 @@ export default function MePage() {
 
   return (
     <div className="page">
-      <PageHeader title="Me" subtitle="Signed in and ready to play." />
+      <PageHeader title="Me" subtitle="Your account and games." />
 
       <SectionCard title="Account">
         <Stack spacing={1.5}>
@@ -71,15 +70,31 @@ export default function MePage() {
         </Stack>
       </SectionCard>
 
-      <EmptyState
-        title="Your history"
-        description="Played games and created games will show up here soon."
-        action={
-          <Button component={RouterLink} to="/" variant="contained">
-            Play a game
-          </Button>
-        }
-      />
+      <SectionCard
+        title="My games"
+        subtitle="Games you've published"
+        noPadding
+      >
+        {gamesLoading ? (
+          <PageLoading />
+        ) : gamesError ? (
+          <Typography variant="body2" color="error" sx={{ px: 2, pb: 2 }}>
+            {gamesError}
+          </Typography>
+        ) : games.length === 0 ? (
+          <EmptyState
+            title="No games yet"
+            description="Create a game and it will show up here for you to manage."
+            action={<PrimaryActionButton to="/create" label="Create a game" />}
+          />
+        ) : (
+          <Stack spacing={1.25} sx={{ px: 2, pb: 2 }}>
+            {games.map((game) => (
+              <MyGameCard key={game.id} game={game} />
+            ))}
+          </Stack>
+        )}
+      </SectionCard>
     </div>
   )
 }

@@ -1,20 +1,15 @@
-import {
-  Box,
-  Button,
-  Chip,
-  IconButton,
-  Stack,
-  TextField,
-  Typography,
-  Alert,
-} from '@mui/material'
+import { Alert, Box, Button, IconButton, Stack, TextField, Typography } from '@mui/material'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import CreatorMatchingModeSettings from '../components/CreatorMatchingModeSettings'
 import EmailCodeLogin from '../components/EmailCodeLogin'
+import GameVisibilityPicker from '../components/GameVisibilityPicker'
 import PageHeader from '../components/PageHeader'
+import PageLoading from '../components/PageLoading'
+import TagInput from '../components/TagInput'
 import SectionCard from '../components/SectionCard'
 import PersonPhotoUpload from '../components/PersonPhotoUpload'
 import RelationshipEditor, {
@@ -26,8 +21,10 @@ import RelationshipEditor, {
 } from '../components/RelationshipEditor'
 import { useAuth } from '../contexts/AuthContext'
 import type { MatchingMode } from '../game/matchingModes'
-import { MATCHING_MODE_LABELS } from '../game/matchingModes'
-import MatchingModePicker from '../components/MatchingModePicker'
+import { MATCHING_MODES } from '../game/matchingModes'
+import { queryKeys } from '../hooks/queryKeys'
+import { getSupabaseSetupMessage } from '../lib/supabaseConfig'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 import { publishGame } from '../services/publishGame'
 import { isSupabaseEnabled } from '../services/gameService'
 
@@ -35,24 +32,18 @@ function makePersonId() {
   return crypto.randomUUID()
 }
 
-const pillSx = (active: boolean) => ({
-  height: 32,
-  fontSize: '0.82rem',
-  fontWeight: 500,
-  borderRadius: '99px',
-  border: '1px solid',
-  borderColor: active ? 'primary.main' : 'divider',
-  bgcolor: active ? 'primary.main' : 'transparent',
-  color: active ? 'primary.contrastText' : 'text.secondary',
-})
-
 export default function CreateGamePage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user, loading: authLoading } = useAuth()
 
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [visibility, setVisibility] = useState<'public' | 'unlisted'>('public')
   const [ownerMatchingMode, setOwnerMatchingMode] = useState<MatchingMode>('tap_pairs')
   const [modeLocked, setModeLocked] = useState(false)
+  const [allowedMatchingModes, setAllowedMatchingModes] = useState<MatchingMode[]>([...MATCHING_MODES])
   const [people, setPeople] = useState<DraftPerson[]>([
     { id: makePersonId(), name: '', photoDataUrl: null },
     { id: makePersonId(), name: '', photoDataUrl: null },
@@ -89,29 +80,63 @@ export default function CreateGamePage() {
     return relationshipsReady
   }, [title, people, relationshipsReady])
 
-  const needsAuth = isSupabaseEnabled && !user
-  const canPublish = formReady && !needsAuth && isSupabaseEnabled
+  const canPublish = formReady && Boolean(user) && isSupabaseEnabled
 
   const publishMutation = useMutation({
     mutationFn: () =>
       publishGame({
         title,
+        description,
+        tags,
+        visibility,
         ownerMatchingMode,
         modeLocked,
+        allowedMatchingModes,
         people,
         relationships,
       }),
     onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.popularGames })
       navigate(`/game/${result.slug}/play`)
     },
   })
 
   function publishButtonLabel() {
     if (!isSupabaseEnabled) return 'Supabase required to publish'
-    if (needsAuth) return 'Sign in to publish'
+    if (!user) return 'Sign in to publish'
     if (!formReady) return 'Fill in all fields to publish'
     if (publishMutation.isPending) return 'Publishing…'
     return 'Publish game'
+  }
+
+  if (!isSupabaseEnabled) {
+    return (
+      <div className="page">
+        <PageHeader title="Create" subtitle="Add photos, names, and who is actually with who." />
+        <Alert severity="warning">{getSupabaseSetupMessage()}</Alert>
+      </div>
+    )
+  }
+
+  if (authLoading) {
+    return (
+      <div className="page">
+        <PageLoading />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="page">
+        <PageHeader
+          title="Sign in to create"
+          subtitle="An account is required to publish games."
+        />
+        <EmailCodeLogin />
+      </div>
+    )
   }
 
   return (
@@ -121,16 +146,10 @@ export default function CreateGamePage() {
         subtitle="Add photos, names, and who is actually with who."
       />
 
-      {!isSupabaseEnabled ? (
-        <Alert severity="info">
-          Connect Supabase to publish games. Locally you can still fill out the form to preview the flow.
-        </Alert>
-      ) : null}
-
-      {needsAuth && !authLoading ? (
-        <SectionCard title="Sign in to publish" subtitle="Required before your game goes live.">
-          <EmailCodeLogin compact />
-        </SectionCard>
+      {user?.email ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: -0.5, lineHeight: 1.5 }}>
+          Publishing as <strong>{user.email}</strong>
+        </Typography>
       ) : null}
 
       {publishMutation.error ? (
@@ -142,43 +161,44 @@ export default function CreateGamePage() {
       ) : null}
 
       <SectionCard title="Details">
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { md: '1fr 1fr' },
-            gap: { md: 2 },
-          }}
-        >
+        <Stack spacing={2}>
           <TextField
             label="Game title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             fullWidth
             placeholder="Friend group reunion"
-            sx={{ mb: { xs: 2, md: 0 }, gridColumn: { md: '1 / -1' } }}
+          />
+
+          <TextField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={5}
+            placeholder="What's this game about? Give players a little context."
           />
 
           <Box>
             <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-              How players match
+              Tags
             </Typography>
-            <MatchingModePicker value={ownerMatchingMode} onChange={setOwnerMatchingMode} />
-            <Box sx={{ mt: 1.25, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              <Chip
-                label={modeLocked ? 'Mode locked for players' : 'Players can switch mode'}
-                size="small"
-                onClick={() => setModeLocked((v) => !v)}
-                sx={pillSx(modeLocked)}
-              />
-            </Box>
+            <TagInput value={tags} onChange={setTags} />
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.45 }}>
-              {MATCHING_MODE_LABELS[ownerMatchingMode]} — tap photos or pick from a list.
-            </Typography>
-          </Box>
-        </Box>
+          <GameVisibilityPicker value={visibility} onChange={setVisibility} />
+
+          <CreatorMatchingModeSettings
+            modeLocked={modeLocked}
+            onModeLockedChange={setModeLocked}
+            lockedMode={ownerMatchingMode}
+            onLockedModeChange={setOwnerMatchingMode}
+            allowedModes={allowedMatchingModes}
+            onAllowedModesChange={setAllowedMatchingModes}
+          />
+        </Stack>
       </SectionCard>
 
       <SectionCard
@@ -192,24 +212,24 @@ export default function CreateGamePage() {
               key={person.id}
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                gap: { xs: 1.25, sm: 1.5 },
-                alignItems: { xs: 'stretch', sm: 'flex-start' },
+                flexDirection: 'column',
+                gap: 1.25,
+                alignItems: 'stretch',
                 px: 2,
                 py: 1.5,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <PersonPhotoUpload
                   value={person.photoDataUrl}
                   onChange={(photoDataUrl) => updatePerson(person.id, { photoDataUrl })}
                   required
                 />
-                <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                <Typography variant="caption" color="text.secondary">
                   Person {index + 1}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flex: 1, alignItems: 'flex-start' }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
                 <TextField
                   label="Name"
                   value={person.name}
@@ -259,17 +279,11 @@ export default function CreateGamePage() {
         />
       </SectionCard>
 
-      <Button
-        variant="contained"
-        color="primary"
-        fullWidth
-        size="large"
+      <PrimaryActionButton
         disabled={!canPublish || publishMutation.isPending}
         onClick={() => publishMutation.mutate()}
-        sx={{ py: 1.35 }}
-      >
-        {publishButtonLabel()}
-      </Button>
+        label={publishButtonLabel()}
+      />
     </div>
   )
 }

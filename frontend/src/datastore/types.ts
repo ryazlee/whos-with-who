@@ -13,6 +13,10 @@ export type GameSummary = {
   peopleCount: number
   ownerMatchingMode: MatchingMode
   modeLocked: boolean
+  allowedMatchingModes: MatchingMode[]
+  authorName: string | null
+  /** ISO timestamp when the game was published (null if draft). */
+  publishedAt: string | null
   /** First few people for feed avatars (ordered). */
   previewPeople: Array<{ id: ID; name: string; imageUrl: string }>
 }
@@ -24,8 +28,11 @@ export type DailyChallenge = {
 
 export type GameForPlay = {
   gameId: ID
+  title: string
+  authorName: string | null
   ownerMatchingMode: MatchingMode
   modeLocked: boolean
+  allowedMatchingModes: MatchingMode[]
   people: Person[]
   allowSingleChoice: boolean
 }

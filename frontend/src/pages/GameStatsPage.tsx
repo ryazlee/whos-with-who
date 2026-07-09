@@ -1,5 +1,5 @@
-import { Button } from '@mui/material'
-import { Link as RouterLink, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 import EmptyState from '../components/EmptyState'
 import PageHeader from '../components/PageHeader'
 
@@ -12,11 +12,7 @@ export default function GameStatsPage() {
       <EmptyState
         title="Coming soon"
         description="Score distributions and creator analytics will live here."
-        action={
-          <Button component={RouterLink} to="/" variant="outlined">
-            Back home
-          </Button>
-        }
+        action={<PrimaryActionButton to="/" label="Back home" />}
       />
     </div>
   )

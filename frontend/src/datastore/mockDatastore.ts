@@ -21,6 +21,7 @@ import type {
   MatchAllSelections,
 } from './types'
 import type { WhoWithWhoDatastore } from './WhoWithWhoDatastore'
+import { MATCHING_MODES } from '../game/matchingModes'
 
 function toSummary(game: MockGameDefinition): GameSummary {
   return {
@@ -33,6 +34,9 @@ function toSummary(game: MockGameDefinition): GameSummary {
     peopleCount: game.people.length,
     ownerMatchingMode: game.ownerMatchingMode,
     modeLocked: game.modeLocked,
+    allowedMatchingModes: game.allowedMatchingModes ?? [...MATCHING_MODES],
+    authorName: game.authorName ?? null,
+    publishedAt: game.publishedAt ?? null,
     previewPeople: game.people.slice(0, 5).map((p) => ({
       id: p.id,
       name: p.name,
@@ -95,8 +99,11 @@ function gameForPlayFromDefinition(game: MockGameDefinition): GameForPlay {
   )
   return {
     gameId: game.id,
+    title: game.title,
+    authorName: game.authorName ?? null,
     ownerMatchingMode: game.ownerMatchingMode,
     modeLocked: game.modeLocked,
+    allowedMatchingModes: game.allowedMatchingModes ?? [...MATCHING_MODES],
     people: game.people,
     allowSingleChoice,
   }

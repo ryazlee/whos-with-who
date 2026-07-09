@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# Who's With Who? — frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Local development
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd frontend
+cp .env.example .env.local
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Edit `.env.local`:
+
+- `VITE_SUPABASE_URL` — from Supabase → Project Settings → API
+- `VITE_SUPABASE_ANON_KEY` — the **anon public** key (same page)
+
+Restart the dev server after changing env vars:
+
+```bash
+npm run dev
+```
+
+Open Create — you should see **Sign in to publish**, not a Supabase setup warning.
+
+## GitHub Pages deploy
+
+The build reads Supabase vars from **GitHub Actions secrets** (not from `.env.local`).
+
+In the repo on GitHub: **Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret | Value |
+|--------|--------|
+| `VITE_SUPABASE_URL` | `https://YOUR_PROJECT.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | anon public key from Supabase |
+
+Push to `main` or run the **Deploy to GitHub Pages** workflow to rebuild.
+
+## Supabase database
+
+Apply migrations before publishing games:
+
+```bash
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+```
+
+See [`../supabase/README.md`](../supabase/README.md).

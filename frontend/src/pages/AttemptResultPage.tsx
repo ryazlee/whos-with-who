@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
   Box,
   Button,
@@ -8,10 +9,10 @@ import {
   Typography,
 } from '@mui/material'
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
-import { Link as RouterLink, useParams } from 'react-router-dom'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import PersonAvatar from '../components/PersonAvatar'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
 import { useAttemptResult } from '../hooks/useGame'
 
@@ -43,14 +44,14 @@ export default function AttemptResultPage() {
 
   return (
     <div className="page">
-      <Box className="surfaceCard" sx={{ p: { xs: 2.5, md: 3 }, textAlign: 'center' }}>
+      <Box className="surfaceCard" sx={{ p: 2.5, textAlign: 'center' }}>
         <Typography
           variant="h2"
           sx={{
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: '-0.04em',
-            fontSize: { xs: '3rem', md: '4rem' },
+            fontSize: '3rem',
           }}
         >
           {result.score100}
@@ -146,9 +147,7 @@ export default function AttemptResultPage() {
         </Collapse>
       </Box>
 
-      <Button component={RouterLink} to="/" variant="contained" color="primary" fullWidth size="large" sx={{ py: 1.35 }}>
-        Back to games
-      </Button>
+      <PrimaryActionButton to="/" label="Back to games" />
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { ensureSession } from '../lib/auth'
 import { supabase } from '../lib/supabaseClient'
 import { saveAttemptResult, getCompletedAttemptForGame } from '../lib/localAttempts'
 import type { MatchingMode } from '../game/matchingModes'
+import { normalizeAllowedModes } from '../game/matchingModes'
 
 function resolveImageUrl(url: string): string {
   if (url.startsWith('mock/')) {
@@ -118,7 +119,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
 
     const { data: game, error: gameError } = await sb
       .from('games')
-      .select('id, matching_mode, mode_locked')
+      .select('id, title, matching_mode, mode_locked, allowed_matching_modes, creator_display_name')
       .eq('id', uuid)
       .not('published_at', 'is', null)
       .single()
@@ -141,8 +142,13 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
 
     return {
       gameId,
+      title: game.title,
+      authorName: game.creator_display_name?.trim() || null,
       ownerMatchingMode: game.matching_mode as MatchingMode,
       modeLocked: game.mode_locked,
+      allowedMatchingModes: normalizeAllowedModes(
+        (game.allowed_matching_modes ?? []) as MatchingMode[],
+      ),
       people: (people ?? []).map((p) => ({
         id: p.id,
         name: p.name,

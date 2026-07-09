@@ -12,6 +12,12 @@ import {
   listPopularGames,
   submitMatchAllAttempt,
 } from '../services/gameService'
+import {
+  deleteGame,
+  listMyGames,
+  updateGameVisibility,
+} from '../services/myGames'
+import { getGameForEdit, updateGame } from '../services/updateGame'
 import { queryKeys } from './queryKeys'
 
 function getQueryErrorMessage(error: unknown, fallback: string): string {
@@ -128,6 +134,86 @@ export function useSubmitMatchAllAttempt() {
       queryClient.setQueryData(queryKeys.attemptResult(attempt.attemptId), attempt)
       queryClient.setQueryData(queryKeys.myGameAttempt(attempt.gameId), attempt)
       navigate(`/attempt/${attempt.attemptId}/result`)
+    },
+  })
+}
+
+export function useMyGames() {
+  const { user } = useAuth()
+
+  const query = useQuery({
+    queryKey: queryKeys.myGames,
+    queryFn: listMyGames,
+    enabled: Boolean(user),
+  })
+
+  return {
+    games: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error
+      ? getQueryErrorMessage(query.error, 'Failed to load your games')
+      : null,
+    refetch: query.refetch,
+  }
+}
+
+export function useUpdateGameVisibility() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (args: { gameRef: string; visibility: 'public' | 'unlisted' }) =>
+      updateGameVisibility(args.gameRef, args.visibility),
+    onSuccess: (_data, args) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.popularGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameSummary(args.gameRef) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameForEdit(args.gameRef) })
+    },
+  })
+}
+
+export function useGameForEdit(gameRef: string) {
+  const { user } = useAuth()
+
+  const query = useQuery({
+    queryKey: queryKeys.gameForEdit(gameRef),
+    queryFn: () => getGameForEdit(gameRef),
+    enabled: Boolean(gameRef && user),
+  })
+
+  return {
+    game: query.data,
+    loading: query.isLoading,
+    error: query.error
+      ? getQueryErrorMessage(query.error, 'Failed to load game for editing')
+      : null,
+  }
+}
+
+export function useUpdateGame() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (args: Parameters<typeof updateGame>[0]) => updateGame(args),
+    onSuccess: (_data, args) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.popularGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameSummary(args.gameRef) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameForEdit(args.gameRef) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameForPlay(args.gameRef) })
+    },
+  })
+}
+
+export function useDeleteGame() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (gameRef: string) => deleteGame(gameRef),
+    onSuccess: (_data, gameRef) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.popularGames })
+      void queryClient.removeQueries({ queryKey: queryKeys.gameSummary(gameRef) })
     },
   })
 }

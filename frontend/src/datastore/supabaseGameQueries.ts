@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { MatchingMode } from '../game/matchingModes'
+import { normalizeAllowedModes } from '../game/matchingModes'
 import type { GameSummary, ID } from './types'
 
 type GameRow = {
@@ -10,6 +11,9 @@ type GameRow = {
   visibility: string
   matching_mode: string
   mode_locked: boolean
+  allowed_matching_modes: string[] | null
+  creator_display_name: string | null
+  published_at: string | null
 }
 
 function resolveImageUrl(url: string): string {
@@ -22,18 +26,25 @@ function resolveImageUrl(url: string): string {
 
 export async function fetchGameSummaries(
   sb: SupabaseClient,
-  opts?: { gameId?: string; visibility?: 'public' | 'unlisted' },
+  opts?: {
+    gameId?: string
+    visibility?: 'public' | 'unlisted'
+    creatorId?: string
+  },
 ): Promise<GameSummary[]> {
   let query = sb
     .from('games')
-    .select('id, slug, title, description, visibility, matching_mode, mode_locked')
+    .select('id, slug, title, description, visibility, matching_mode, mode_locked, allowed_matching_modes, creator_display_name, published_at')
     .not('published_at', 'is', null)
 
   if (opts?.visibility) {
     query = query.eq('visibility', opts.visibility)
   }
+  if (opts?.creatorId) {
+    query = query.eq('creator_id', opts.creatorId)
+  }
   if (opts?.gameId) {
-    query = query.eq('id', opts.gameId)
+    query = query.or(`id.eq.${opts.gameId},slug.eq.${opts.gameId}`)
   }
 
   const { data: games, error: gamesError } = await query
@@ -99,6 +110,11 @@ export async function fetchGameSummaries(
       peopleCount: previewPeople.length,
       ownerMatchingMode: g.matching_mode as MatchingMode,
       modeLocked: g.mode_locked,
+      allowedMatchingModes: normalizeAllowedModes(
+        (g.allowed_matching_modes ?? []) as MatchingMode[],
+      ),
+      authorName: g.creator_display_name?.trim() || null,
+      publishedAt: g.published_at,
       previewPeople: previewPeople.slice(0, 5),
     }
   })

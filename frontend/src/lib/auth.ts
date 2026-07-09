@@ -26,6 +26,15 @@ export async function ensureSession(): Promise<Session> {
   return data.session
 }
 
+/**
+ * Sends a 6-digit email OTP (not a magic link).
+ *
+ * Supabase dashboard setup:
+ * - Authentication → Providers → Email: enable Email provider
+ * - Authentication → Email Templates → Magic Link: include `{{ .Token }}` in the
+ *   body and remove `{{ .ConfirmationURL }}` so users receive a numeric code
+ * - Do not pass `emailRedirectTo` here — that switches delivery to magic links
+ */
 export async function sendEmailCode(email: string) {
   if (!supabase) throw new Error('Supabase is not configured.')
 
@@ -34,17 +43,21 @@ export async function sendEmailCode(email: string) {
 
   const { error } = await supabase.auth.signInWithOtp({
     email: trimmed,
-    options: { shouldCreateUser: true },
+    options: {
+      shouldCreateUser: true,
+      // Omit emailRedirectTo so Supabase sends an OTP code email, not a magic link.
+    },
   })
   if (error) throw error
   return trimmed
 }
 
+/** Verifies the 6-digit email OTP and returns the new session. */
 export async function verifyEmailCode(email: string, code: string) {
   if (!supabase) throw new Error('Supabase is not configured.')
 
-  const token = code.trim().replace(/\s/g, '')
-  if (token.length < 6) throw new Error('Enter the 6-digit code from your email.')
+  const token = code.trim().replace(/\D/g, '')
+  if (token.length !== 6) throw new Error('Enter the 6-digit code sent to your email.')
 
   const { data, error } = await supabase.auth.verifyOtp({
     email: email.trim().toLowerCase(),

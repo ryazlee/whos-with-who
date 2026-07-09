@@ -1,5 +1,4 @@
-import { Button } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 import EmptyState from '../components/EmptyState'
 import PageHeader from '../components/PageHeader'
 
@@ -10,11 +9,7 @@ export default function NotFoundPage() {
       <EmptyState
         title="Lost?"
         description="Head back home and pick a game to play."
-        action={
-          <Button component={RouterLink} to="/" variant="contained">
-            Go home
-          </Button>
-        }
+        action={<PrimaryActionButton to="/" label="Go home" />}
       />
     </div>
   )

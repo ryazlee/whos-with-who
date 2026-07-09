@@ -1,19 +1,18 @@
 import type { DraftPerson, DraftRelationships } from '../components/RelationshipEditor'
 import type { MatchingMode } from '../game/matchingModes'
+import { normalizeAllowedModes } from '../game/matchingModes'
 import { ensureSession } from '../lib/auth'
 import {
   ensureUuid,
   relationshipsToGroups,
-  slugifyTitle,
-  type PublishGameResult,
 } from '../lib/publishGamePayload'
 import { tagsToPayload } from '../lib/tagUtils'
 import { uploadGamePersonImage } from '../lib/uploadGameImage'
 import { supabase } from '../lib/supabaseClient'
 
-export type { PublishGameResult }
-
-export async function publishGame(args: {
+export type GameForEdit = {
+  gameId: string
+  slug: string | null
   title: string
   description: string
   tags: string[]
@@ -23,14 +22,68 @@ export async function publishGame(args: {
   allowedMatchingModes: MatchingMode[]
   people: DraftPerson[]
   relationships: DraftRelationships
-}): Promise<PublishGameResult> {
+}
+
+export async function getGameForEdit(gameRef: string): Promise<GameForEdit> {
   if (!supabase) {
-    throw new Error('Publishing requires Supabase. Add env vars or use mock mode locally.')
+    throw new Error('Supabase is not configured')
+  }
+
+  await ensureSession()
+
+  const { data, error } = await supabase.rpc('get_game_for_edit', {
+    p_game_ref: gameRef,
+  })
+
+  if (error) throw error
+
+  const raw = data as Record<string, unknown>
+  const peopleRaw = (raw.people as Array<{
+    id: string
+    name: string
+    imageUrl: string
+    sortOrder: number
+  }>) ?? []
+
+  const relationshipsRaw = (raw.relationships as Record<string, string | null>) ?? {}
+
+  return {
+    gameId: raw.gameId as string,
+    slug: (raw.slug as string | null) ?? null,
+    title: raw.title as string,
+    description: (raw.description as string) ?? '',
+    tags: (raw.tags as string[]) ?? [],
+    visibility: raw.visibility as 'public' | 'unlisted',
+    ownerMatchingMode: raw.matchingMode as MatchingMode,
+    modeLocked: Boolean(raw.modeLocked),
+    allowedMatchingModes: normalizeAllowedModes(raw.allowedMatchingModes as MatchingMode[]),
+    people: peopleRaw.map((p) => ({
+      id: p.id,
+      name: p.name,
+      photoDataUrl: p.imageUrl,
+    })),
+    relationships: relationshipsRaw,
+  }
+}
+
+export async function updateGame(args: {
+  gameRef: string
+  title: string
+  description: string
+  tags: string[]
+  visibility: 'public' | 'unlisted'
+  ownerMatchingMode: MatchingMode
+  modeLocked: boolean
+  allowedMatchingModes: MatchingMode[]
+  people: DraftPerson[]
+  relationships: DraftRelationships
+}): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured')
   }
 
   const session = await ensureSession()
   const userId = session.user.id
-  const authorName = session.user.email ?? session.user.user_metadata?.display_name ?? null
 
   const named = args.people.filter((p) => p.name.trim() && p.photoDataUrl)
   if (named.length < 2) {
@@ -85,15 +138,12 @@ export async function publishGame(args: {
     throw new Error('Set a partner or single status for every person.')
   }
 
-  const slug = `${slugifyTitle(args.title)}-${crypto.randomUUID().slice(0, 8)}`
-
-  const { data, error } = await supabase.rpc('publish_game', {
+  const { error } = await supabase.rpc('update_game', {
+    p_game_ref: args.gameRef,
     p_payload: {
       title: args.title.trim(),
       description: args.description.trim(),
       tags: tagsToPayload(args.tags),
-      creator_display_name: authorName,
-      slug,
       visibility: args.visibility,
       matching_mode: args.modeLocked
         ? args.ownerMatchingMode
@@ -106,7 +156,4 @@ export async function publishGame(args: {
   })
 
   if (error) throw error
-
-  const result = data as { gameId: string; slug: string }
-  return { gameId: result.slug ?? result.gameId, slug: result.slug }
 }

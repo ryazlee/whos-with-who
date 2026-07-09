@@ -35,7 +35,7 @@ export default function PersonPhotoUpload({ value, onChange, required }: Props) 
   }
 
   return (
-    <Box sx={{ flexShrink: 0, width: { xs: 72, sm: 72 } }}>
+    <Box sx={{ flexShrink: 0, width: 72 }}>
       {value ? (
         <Box>
           <Box sx={{ position: 'relative', width: 64, height: 64 }}>
