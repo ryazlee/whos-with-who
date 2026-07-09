@@ -13,6 +13,7 @@ import {
 } from '../game/pairMatching'
 import { PairingProgress } from './PairingUI'
 import PersonAvatar from './PersonAvatar'
+import { computeDrawLinesLayout } from '../game/drawLinesLayout'
 
 type Props = {
   people: Person[]
@@ -24,8 +25,6 @@ type Props = {
 }
 
 type NodePos = { x: number; y: number; person: Person }
-
-const AVATAR_SIZE = 64
 
 function circlePosition(index: number, total: number, radius: number, cx: number, cy: number) {
   const angle = (2 * Math.PI * index) / total - Math.PI / 2
@@ -65,10 +64,12 @@ export default function DrawLinesPlay({
     return () => ro.disconnect()
   }, [])
 
-  const height = Math.max(300, Math.min(420, width * 0.95))
-  const cx = width / 2
-  const cy = height / 2
-  const radius = Math.min(width, height) * 0.34
+  const layout = useMemo(
+    () => computeDrawLinesLayout(people.length, width),
+    [people.length, width],
+  )
+
+  const { height, cx, cy, radius, avatarSize, hitRadius, showName, lineStroke } = layout
 
   const nodes: NodePos[] = useMemo(
     () =>
@@ -107,7 +108,6 @@ export default function DrawLinesPlay({
   }
 
   function hitTestPerson(x: number, y: number): string | null {
-    const hitRadius = AVATAR_SIZE * 0.55
     for (const node of nodes) {
       const dx = x - node.x
       const dy = y - node.y
@@ -252,7 +252,7 @@ export default function DrawLinesPlay({
                   x2={nb.x}
                   y2={nb.y}
                   stroke="currentColor"
-                  strokeWidth={3}
+                  strokeWidth={lineStroke}
                   strokeLinecap="round"
                   opacity={0.55}
                 />
@@ -268,7 +268,7 @@ export default function DrawLinesPlay({
                   x2={dragPoint.x}
                   y2={dragPoint.y}
                   stroke="currentColor"
-                  strokeWidth={2.5}
+                  strokeWidth={Math.max(2, lineStroke - 0.5)}
                   strokeDasharray="6 4"
                   strokeLinecap="round"
                   opacity={0.75}
@@ -292,10 +292,11 @@ export default function DrawLinesPlay({
               >
                 <PersonAvatar
                   person={node.person}
-                  size={AVATAR_SIZE}
+                  size={avatarSize}
                   selected={selectedId === node.person.id || dragFromId === node.person.id}
                   paired={pairedIds.has(node.person.id)}
-                  showName
+                  showName={showName}
+                  compact={avatarSize < 46}
                 />
               </Box>
             ))}

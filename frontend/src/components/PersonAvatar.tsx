@@ -8,6 +8,8 @@ type Props = {
   selected?: boolean
   paired?: boolean
   showName?: boolean
+  /** Smaller label for dense layouts (e.g. draw lines with many people). */
+  compact?: boolean
   onClick?: () => void
   draggable?: boolean
   onDragStart?: () => void
@@ -21,6 +23,7 @@ export default function PersonAvatar({
   selected,
   paired,
   showName = true,
+  compact,
   onClick,
   draggable,
   onDragStart,
@@ -58,7 +61,7 @@ export default function PersonAvatar({
         flexDirection: 'column',
         alignItems: 'center',
         gap: 0.5,
-        width: size + 16,
+        width: compact ? size + 10 : size + 16,
       }}
     >
       <Box
@@ -69,8 +72,8 @@ export default function PersonAvatar({
           width: size,
           height: size,
           objectFit: 'cover',
-          borderRadius: 1.5,
-          border: '2px solid',
+          borderRadius: compact ? 1.25 : 1.5,
+          border: compact ? '1.5px solid' : '2px solid',
           borderColor: selected ? 'primary.main' : paired ? 'divider' : 'divider',
           opacity: paired ? 0.85 : 1,
           transition: 'border-color 0.15s, transform 0.1s',
@@ -84,6 +87,11 @@ export default function PersonAvatar({
           lineHeight: 1.2,
           textAlign: 'center',
           display: showName ? 'block' : 'none',
+          fontSize: compact ? '0.625rem' : undefined,
+          maxWidth: size + (compact ? 12 : 20),
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}
       >
         {person.name}
