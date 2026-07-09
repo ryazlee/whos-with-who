@@ -16,6 +16,8 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import { useThemeMode } from './MuiAppProvider'
+import AppLogo from './AppLogo'
+import { APP_NAME } from '../lib/brand'
 
 type Props = {
   children: ReactNode
@@ -81,8 +83,8 @@ export default function PageShell({ children }: Props) {
             </>
           ) : (
             <>
-              <a href={APP_HOME_HREF} className="brand">
-                <span className="brandText">Who&apos;s With Who?</span>
+              <a href={APP_HOME_HREF} className="brand" aria-label={`${APP_NAME} home`}>
+                <AppLogo showName />
               </a>
 
               <nav className="desktopNav" aria-label="Main">

@@ -48,6 +48,14 @@ export type CommunityPerPerson = Array<{
   singlePercent: number
 }>
 
+export type LeaderboardEntry = {
+  attemptId: ID
+  displayName: string
+  score100: number
+  correctCount: number
+  rank: number
+}
+
 export type AttemptResult = {
   attemptId: ID
   gameId: ID

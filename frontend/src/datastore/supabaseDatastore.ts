@@ -1,9 +1,11 @@
 import type {
   AttemptResult,
+  CommunityPerPerson,
   DailyChallenge,
   GameForPlay,
   GameSummary,
   ID,
+  LeaderboardEntry,
   MatchAllSelections,
 } from './types'
 import type { WhoWithWhoDatastore } from './WhoWithWhoDatastore'
@@ -189,7 +191,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
     if (error) throw error
 
     const result = parseAttemptResult(data as Record<string, unknown>)
-    saveAttemptResult({ ...result, gameId: args.gameId })
+    saveAttemptResult({ ...result, gameId: args.gameId }, args.gameId)
     return { ...result, gameId: args.gameId }
   }
 
@@ -236,6 +238,37 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
 
     if (error) throw error
     return parseAttemptResult(data as Record<string, unknown>)
+  }
+
+  async getGameLeaderboard(gameId: ID, limit = 10): Promise<LeaderboardEntry[]> {
+    const sb = this.sb()
+
+    const { data, error } = await sb.rpc('game_leaderboard', {
+      p_game_id: gameId,
+      p_limit: limit,
+    })
+
+    if (error) throw error
+
+    const rows = (data ?? []) as Array<Record<string, unknown>>
+    return rows.map((row) => ({
+      attemptId: row.attemptId as string,
+      displayName: row.displayName as string,
+      score100: row.score100 as number,
+      correctCount: row.correctCount as number,
+      rank: row.rank as number,
+    }))
+  }
+
+  async getGameCommunityStats(gameId: ID): Promise<CommunityPerPerson> {
+    const sb = this.sb()
+
+    const { data, error } = await sb.rpc('get_game_community_stats', {
+      p_game_id: gameId,
+    })
+
+    if (error) throw error
+    return (data ?? []) as CommunityPerPerson
   }
 }
 

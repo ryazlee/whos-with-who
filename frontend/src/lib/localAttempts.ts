@@ -29,17 +29,38 @@ export function getCompletedAttemptForGame(gameId: ID): GameAttemptRef | null {
   return map[gameId] ?? null
 }
 
+/** Match by localStorage key or stored game id (slug vs uuid). */
+export function findCompletedAttemptForRef(gameRef: ID): GameAttemptRef | null {
+  const direct = getCompletedAttemptForGame(gameRef)
+  if (direct) return direct
+
+  const map = readJson<Record<ID, GameAttemptRef>>(BY_GAME_KEY, {})
+  return Object.values(map).find((ref) => ref.gameId === gameRef) ?? null
+}
+
+export function listCompletedGameAttempts(): GameAttemptRef[] {
+  const map = readJson<Record<ID, GameAttemptRef>>(BY_GAME_KEY, {})
+  return Object.values(map).sort(
+    (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
+  )
+}
+
 export function hasPlayedGame(gameId: ID): boolean {
   return getCompletedAttemptForGame(gameId) !== null
 }
 
-export function saveAttemptResult(result: AttemptResult) {
-  const byGame = readJson<Record<ID, GameAttemptRef>>(BY_GAME_KEY, {})
-  byGame[result.gameId] = {
+export function saveAttemptResult(result: AttemptResult, playGameRef?: ID) {
+  const ref: GameAttemptRef = {
     attemptId: result.attemptId,
     gameId: result.gameId,
     score100: result.score100,
     completedAt: new Date().toISOString(),
+  }
+
+  const byGame = readJson<Record<ID, GameAttemptRef>>(BY_GAME_KEY, {})
+  byGame[result.gameId] = ref
+  if (playGameRef && playGameRef !== result.gameId) {
+    byGame[playGameRef] = ref
   }
   writeJson(BY_GAME_KEY, byGame)
 

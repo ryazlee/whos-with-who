@@ -4,30 +4,19 @@ import EmptyState from '../components/EmptyState'
 import MyGameCard from '../components/MyGameCard'
 import PageHeader from '../components/PageHeader'
 import PageLoading from '../components/PageLoading'
+import PlayedGameCard from '../components/PlayedGameCard'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
 import { useAuth } from '../contexts/AuthContext'
-import { useMyGames } from '../hooks/useGame'
+import { useMyGames, usePlayedGames } from '../hooks/useGame'
 import { signOut } from '../lib/auth'
 
 export default function MePage() {
-  const { user, loading, isConfigured } = useAuth()
+  const { user, loading: authLoading, isConfigured } = useAuth()
+  const { playedGames, loading: playedLoading, error: playedError } = usePlayedGames()
   const { games, loading: gamesLoading, error: gamesError } = useMyGames()
 
-  if (!isConfigured) {
-    return (
-      <div className="page">
-        <PageHeader title="Me" subtitle="Your games and scores." />
-        <EmptyState
-          title="Offline mode"
-          description="Add Supabase env vars to enable sign-in and saved scores."
-          action={<PrimaryActionButton to="/" label="Browse games" />}
-        />
-      </div>
-    )
-  }
-
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="page">
         <PageLoading />
@@ -35,63 +24,101 @@ export default function MePage() {
     )
   }
 
-  if (!user) {
-    return (
-      <div className="page">
-        <PageHeader
-          title="Sign in"
-          subtitle="Use your email to save scores and manage games you've created."
-        />
-        <EmailCodeLogin />
-      </div>
-    )
-  }
-
   return (
     <div className="page mePage">
-      <PageHeader title="Me" subtitle="Your account and games." />
+      <PageHeader
+        title="Me"
+        subtitle={
+          user
+            ? 'Your account, scores, and games.'
+            : 'Games you’ve played on this device — no sign-in required.'
+        }
+      />
 
-      <Box className="surfaceCard meAccount">
-        <Typography className="meAccount__email" component="p">
-          {user.email}
-        </Typography>
-        <Button
-          variant="text"
-          size="small"
-          color="inherit"
-          onClick={() => void signOut()}
-          className="meAccount__signOut"
-        >
-          Sign out
-        </Button>
-      </Box>
+      {isConfigured && user ? (
+        <Box className="surfaceCard meAccount">
+          <Typography className="meAccount__email" component="p">
+            {user.email}
+          </Typography>
+          <Button
+            variant="text"
+            size="small"
+            color="inherit"
+            onClick={() => void signOut()}
+            className="meAccount__signOut"
+          >
+            Sign out
+          </Button>
+        </Box>
+      ) : null}
 
-      <SectionCard title="My games" subtitle="Games you've published" noPadding>
-        {gamesLoading ? (
+      <SectionCard title="Games you've played" subtitle="Saved on this device" noPadding>
+        {playedLoading ? (
           <Box sx={{ px: 2, py: 2 }}>
             <PageLoading />
           </Box>
-        ) : gamesError ? (
+        ) : playedError ? (
           <Typography variant="body2" color="error" sx={{ px: 2, py: 1.5 }}>
-            {gamesError}
+            {playedError}
           </Typography>
-        ) : games.length === 0 ? (
+        ) : playedGames.length === 0 ? (
           <EmptyState
-            title="No games yet"
-            description="Create a game and it will show up here for you to manage."
-            action={<PrimaryActionButton to="/create" label="Create a game" />}
+            title="No games played yet"
+            description="Finish a game and your score will show up here."
+            action={<PrimaryActionButton to="/" label="Browse games" />}
           />
         ) : (
           <Box className="meGameList">
-            {games.map((game, index) => (
-              <Box key={game.id}>
+            {playedGames.map(({ ref, summary }, index) => (
+              <Box key={ref.attemptId}>
                 {index > 0 ? <Box className="meGameList__divider" role="separator" /> : null}
-                <MyGameCard game={game} />
+                <PlayedGameCard attempt={ref} game={summary} />
               </Box>
             ))}
           </Box>
         )}
       </SectionCard>
+
+      {isConfigured && !user ? (
+        <SectionCard title="Sign in" subtitle="Optional — sync scores across devices">
+          <EmailCodeLogin />
+        </SectionCard>
+      ) : null}
+
+      {isConfigured && user ? (
+        <SectionCard title="My games" subtitle="Games you've published" noPadding>
+          {gamesLoading ? (
+            <Box sx={{ px: 2, py: 2 }}>
+              <PageLoading />
+            </Box>
+          ) : gamesError ? (
+            <Typography variant="body2" color="error" sx={{ px: 2, py: 1.5 }}>
+              {gamesError}
+            </Typography>
+          ) : games.length === 0 ? (
+            <EmptyState
+              title="No games yet"
+              description="Create a game and it will show up here for you to manage."
+              action={<PrimaryActionButton to="/create" label="Create a game" />}
+            />
+          ) : (
+            <Box className="meGameList">
+              {games.map((game, index) => (
+                <Box key={game.id}>
+                  {index > 0 ? <Box className="meGameList__divider" role="separator" /> : null}
+                  <MyGameCard game={game} />
+                </Box>
+              ))}
+            </Box>
+          )}
+        </SectionCard>
+      ) : null}
+
+      {!isConfigured ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.5 }}>
+          Offline mode — played games are stored in this browser only.
+        </Typography>
+      ) : null}
     </div>
   )
 }

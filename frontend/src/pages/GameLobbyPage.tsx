@@ -5,13 +5,13 @@ import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import StickyActionBar from '../components/StickyActionBar'
-import { getCompletedAttemptForGame } from '../lib/localAttempts'
-import { useGameSummary } from '../hooks/useGame'
+import { useCanViewGameStats, useGameSummary } from '../hooks/useGame'
+import { gameStatsPath } from '../lib/gameUrl'
 
 export default function GameLobbyPage() {
   const { id } = useParams<{ id: string }>()
   const gameId = id ?? ''
-  const completed = gameId ? getCompletedAttemptForGame(gameId) : null
+  const { canView, completed } = useCanViewGameStats(gameId)
   const { game, loading, error } = useGameSummary(gameId)
 
   if (loading) return <div className="page"><PageLoading /></div>
@@ -41,12 +41,28 @@ export default function GameLobbyPage() {
                 label={`View score (${completed.score100})`}
                 variant="outlined"
               />
+              {canView ? (
+                <PrimaryActionButton
+                  to={gameStatsPath(game.id)}
+                  label="Game stats"
+                  variant="outlined"
+                />
+              ) : null}
             </Stack>
           ) : (
-            <PrimaryActionButton
-              to={`/game/${game.id}/play`}
-              label="Play"
-            />
+            <Stack spacing={1} sx={{ width: '100%' }}>
+              <PrimaryActionButton
+                to={`/game/${game.id}/play`}
+                label="Play"
+              />
+              {canView ? (
+                <PrimaryActionButton
+                  to={gameStatsPath(game.id)}
+                  label="Game stats"
+                  variant="outlined"
+                />
+              ) : null}
+            </Stack>
           )}
         </div>
       </StickyActionBar>

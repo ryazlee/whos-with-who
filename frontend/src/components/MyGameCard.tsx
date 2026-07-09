@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
 import { useDeleteGame, useUpdateGameVisibility } from '../hooks/useGame'
-import { absoluteGameUrl, gamePlayPath } from '../lib/gameUrl'
+import { absoluteGameUrl, gamePlayPath, gameStatsPath } from '../lib/gameUrl'
 import GameCardContent from './GameCardContent'
 
 type Props = {
@@ -80,8 +80,14 @@ export default function MyGameCard({ game, onDeleted }: Props) {
           </Box>
 
           <Box className="meGameRow__actions" component="nav" aria-label="Game actions">
-            <RouterLink className="meGameRow__action meGameRow__action--primary" to={gamePlayPath(game.id)}>
+            <RouterLink className="meGameRow__action" to={gamePlayPath(game.id)}>
               Play
+            </RouterLink>
+            <span className="meGameRow__sep" aria-hidden>
+              ·
+            </span>
+            <RouterLink className="meGameRow__action" to={gameStatsPath(game.id)}>
+              Stats
             </RouterLink>
             <span className="meGameRow__sep" aria-hidden>
               ·

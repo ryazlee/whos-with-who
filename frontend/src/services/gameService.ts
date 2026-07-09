@@ -1,9 +1,11 @@
 import type {
   AttemptResult,
+  CommunityPerPerson,
   DailyChallenge,
   GameForPlay,
   GameSummary,
   ID,
+  LeaderboardEntry,
   MatchAllSelections,
 } from '../datastore/types'
 import { mockDatastore } from '../datastore/mockDatastore'
@@ -45,4 +47,12 @@ export async function getAttemptResult(attemptId: ID): Promise<AttemptResult> {
 
 export async function getMyAttemptForGame(gameId: ID): Promise<AttemptResult | null> {
   return datastore.getMyAttemptForGame(gameId)
+}
+
+export async function getGameLeaderboard(gameId: ID, limit = 10): Promise<LeaderboardEntry[]> {
+  return datastore.getGameLeaderboard(gameId, limit)
+}
+
+export async function getGameCommunityStats(gameId: ID): Promise<CommunityPerPerson> {
+  return datastore.getGameCommunityStats(gameId)
 }

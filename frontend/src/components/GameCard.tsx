@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
-import { getCompletedAttemptForGame } from '../lib/localAttempts'
+import { findCompletedAttemptForRef } from '../lib/localAttempts'
 import GameCardContent from './GameCardContent'
 import PrimaryActionButton from './PrimaryActionButton'
 
@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function GameCard({ game, featured, compact, dailyDate }: Props) {
-  const completed = getCompletedAttemptForGame(game.id)
+  const completed = findCompletedAttemptForRef(game.id)
   const destination = `/game/${game.id}/play`
 
   const metaExtras = [

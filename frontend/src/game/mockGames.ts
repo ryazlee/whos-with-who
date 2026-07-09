@@ -7,6 +7,13 @@ export type CommunityGuess = {
   selectedPartnerId: string | null
 }
 
+export type MockLeaderboardScore = {
+  attemptId: string
+  displayName: string
+  score100: number
+  correctCount: number
+}
+
 export type MockGameDefinition = {
   id: string
   title: string
@@ -22,6 +29,7 @@ export type MockGameDefinition = {
   people: Array<{ id: string; name: string; imageUrl: string }>
   correctness: MatchAllCorrectness[]
   communityAttempts: CommunityGuess[]
+  leaderboardScores?: MockLeaderboardScore[]
 }
 
 function person(id: string, name: string, slug: string) {
@@ -60,6 +68,11 @@ export const MOCK_GAMES: MockGameDefinition[] = [
       { personId: 'a', selectedPartnerId: null },
       { personId: 'b', selectedPartnerId: 'a' },
       { personId: 'b', selectedPartnerId: 'a' },
+    ],
+    leaderboardScores: [
+      { attemptId: 'mock-lb-demo-1', displayName: 'Jordan', score100: 100, correctCount: 4 },
+      { attemptId: 'mock-lb-demo-2', displayName: 'Sam', score100: 75, correctCount: 3 },
+      { attemptId: 'mock-lb-demo-3', displayName: 'Taylor', score100: 50, correctCount: 2 },
     ],
   },
   {

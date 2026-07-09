@@ -1,9 +1,11 @@
 import type {
   AttemptResult,
+  CommunityPerPerson,
   DailyChallenge,
   GameForPlay,
   GameSummary,
   ID,
+  LeaderboardEntry,
   MatchAllSelections,
 } from './types'
 
@@ -30,5 +32,9 @@ export interface WhoWithWhoDatastore {
   getMyAttemptForGame(gameId: ID): Promise<AttemptResult | null>
 
   getAttemptResult(attemptId: ID): Promise<AttemptResult>
+
+  getGameLeaderboard(gameId: ID, limit?: number): Promise<LeaderboardEntry[]>
+
+  getGameCommunityStats(gameId: ID): Promise<CommunityPerPerson>
 }
 

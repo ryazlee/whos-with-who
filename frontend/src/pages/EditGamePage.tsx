@@ -46,7 +46,7 @@ import {
   useMyGames,
   useUpdateGame,
 } from '../hooks/useGame'
-import { absoluteGameUrl } from '../lib/gameUrl'
+import { absoluteGameUrl, gameStatsPath } from '../lib/gameUrl'
 
 function makePersonId() {
   return crypto.randomUUID()
@@ -404,6 +404,12 @@ export default function EditGamePage() {
         label={saveButtonLabel()}
         color={saveFeedback ? 'success' : 'primary'}
         startIcon={saveFeedback ? <CheckCircleOutlinedIcon /> : undefined}
+      />
+
+      <PrimaryActionButton
+        to={gameStatsPath(id!)}
+        label="View game stats"
+        variant="outlined"
       />
 
       {saveFeedback ? (

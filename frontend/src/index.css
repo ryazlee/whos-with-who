@@ -506,7 +506,7 @@ html.theme-dark .gameCard__eyebrow {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   text-decoration: none;
   color: var(--text);
   font-weight: 600;
@@ -516,10 +516,17 @@ html.theme-dark .gameCard__eyebrow {
   flex-shrink: 0;
 }
 
+.brandMark {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .brandText {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: none;
 }
 
 .immersiveTitle {
@@ -853,6 +860,67 @@ html.theme-dark .gameCard__eyebrow {
   color: var(--result-wrong);
   background: color-mix(in srgb, var(--result-wrong) 12%, var(--surface));
   border: 1px solid var(--result-wrong-border);
+}
+
+.leaderboardList {
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboardRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.leaderboardRow:last-child {
+  border-bottom: none;
+}
+
+.leaderboardRow--you {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.leaderboardRow__rank {
+  flex-shrink: 0;
+  width: 1.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.leaderboardRow__rank--1 {
+  color: #c9a227;
+}
+
+.leaderboardRow__rank--2 {
+  color: #8a9199;
+}
+
+.leaderboardRow__rank--3 {
+  color: #b87333;
+}
+
+.leaderboardRow__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboardRow__score {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (min-width: 480px) {

@@ -6,12 +6,15 @@ import { useAuth } from '../contexts/AuthContext'
 import {
   getAttemptResult,
   getDailyChallenge,
+  getGameCommunityStats,
   getGameForPlay,
+  getGameLeaderboard,
   getGameSummary,
   getMyAttemptForGame,
   listPopularGames,
   submitMatchAllAttempt,
 } from '../services/gameService'
+import { listCompletedGameAttempts, findCompletedAttemptForRef } from '../lib/localAttempts'
 import {
   deleteGame,
   listMyGames,
@@ -119,6 +122,40 @@ export function useAttemptResult(attemptId: string) {
   }
 }
 
+export function useGameLeaderboard(gameId: string) {
+  const query = useQuery({
+    queryKey: queryKeys.gameLeaderboard(gameId),
+    queryFn: () => getGameLeaderboard(gameId),
+    enabled: Boolean(gameId),
+    staleTime: 30_000,
+  })
+
+  return {
+    leaderboard: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error
+      ? getQueryErrorMessage(query.error, 'Failed to load leaderboard')
+      : null,
+  }
+}
+
+export function useGameCommunityStats(gameId: string) {
+  const query = useQuery({
+    queryKey: queryKeys.gameCommunityStats(gameId),
+    queryFn: () => getGameCommunityStats(gameId),
+    enabled: Boolean(gameId),
+    staleTime: 30_000,
+  })
+
+  return {
+    communityStats: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error
+      ? getQueryErrorMessage(query.error, 'Failed to load community stats')
+      : null,
+  }
+}
+
 export function useSubmitMatchAllAttempt() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -133,9 +170,39 @@ export function useSubmitMatchAllAttempt() {
     onSuccess: (attempt) => {
       queryClient.setQueryData(queryKeys.attemptResult(attempt.attemptId), attempt)
       queryClient.setQueryData(queryKeys.myGameAttempt(attempt.gameId), attempt)
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameLeaderboard(attempt.gameId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameCommunityStats(attempt.gameId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.playedGames })
       navigate(`/attempt/${attempt.attemptId}/result`)
     },
   })
+}
+
+export function usePlayedGames() {
+  const query = useQuery({
+    queryKey: queryKeys.playedGames,
+    queryFn: async () => {
+      const refs = listCompletedGameAttempts()
+      return Promise.all(
+        refs.map(async (ref) => {
+          try {
+            const summary = await getGameSummary(ref.gameId)
+            return { ref, summary }
+          } catch {
+            return { ref, summary: null }
+          }
+        }),
+      )
+    },
+  })
+
+  return {
+    playedGames: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error
+      ? getQueryErrorMessage(query.error, 'Failed to load played games')
+      : null,
+  }
 }
 
 export function useMyGames() {
@@ -154,6 +221,20 @@ export function useMyGames() {
       ? getQueryErrorMessage(query.error, 'Failed to load your games')
       : null,
     refetch: query.refetch,
+  }
+}
+
+export function useCanViewGameStats(gameId: string) {
+  const { user, loading: authLoading } = useAuth()
+  const { games, loading: myGamesLoading } = useMyGames()
+  const completed = findCompletedAttemptForRef(gameId)
+  const isOwner = Boolean(user && games.some((game) => game.id === gameId))
+
+  return {
+    canView: Boolean(completed || isOwner),
+    completed,
+    isOwner,
+    loading: authLoading || (Boolean(user) && myGamesLoading),
   }
 }
 

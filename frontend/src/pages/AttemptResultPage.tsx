@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { Box, Button, Collapse, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
 import GuestPlayBanner from '../components/GuestPlayBanner'
+import GameCommunityPanel from '../components/GameCommunityPanel'
+import GameLeaderboardPanel from '../components/GameLeaderboardPanel'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import PersonAvatar from '../components/PersonAvatar'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
-import { useAttemptResult } from '../hooks/useGame'
+import { useAttemptResult, useGameLeaderboard } from '../hooks/useGame'
+import { gameStatsPath } from '../lib/gameUrl'
 
 function scoreTier(score100: number): 'high' | 'mid' | 'low' {
   if (score100 >= 80) return 'high'
@@ -21,7 +23,7 @@ function scoreTier(score100: number): 'high' | 'mid' | 'low' {
 export default function AttemptResultPage() {
   const { attemptId } = useParams<{ attemptId: string }>()
   const { result, loading, error } = useAttemptResult(attemptId ?? '')
-  const [crowdOpen, setCrowdOpen] = useState(false)
+  const { leaderboard, loading: leaderboardLoading } = useGameLeaderboard(result?.gameId ?? '')
 
   const people = result?.people ?? []
   const personById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
@@ -48,7 +50,6 @@ export default function AttemptResultPage() {
     : 0
   const wrongCount = result.totalQuestions - result.correctCount
   const tier = scoreTier(result.score100)
-  const hasCommunityData = result.communityPerPerson.length > 0
 
   return (
     <div className="page">
@@ -126,68 +127,25 @@ export default function AttemptResultPage() {
         </Box>
       </SectionCard>
 
-      <Box className="surfaceCard">
-        {hasCommunityData ? (
-          <>
-            <Button
-              fullWidth
-              onClick={() => setCrowdOpen((v) => !v)}
-              endIcon={
-                <ExpandMoreOutlinedIcon
-                  sx={{ transform: crowdOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-                />
-              }
-              sx={{
-                justifyContent: 'space-between',
-                px: 2,
-                py: 1.5,
-                color: 'text.primary',
-                fontWeight: 500,
-                borderRadius: 0,
-              }}
-            >
-              What everyone else guessed
-            </Button>
-            <Collapse in={crowdOpen}>
-              <Stack spacing={1.5} sx={{ px: 2, pb: 2, pt: 0.5 }}>
-                {result.communityPerPerson.map((x) => {
-                  const person = personById.get(x.personId)
-                  return (
-                    <Box key={x.personId}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                          {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {personNameById.get(x.personId)}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                          {partnerLabel(x.topPartnerId)} · {x.topPercent}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress variant="determinate" value={x.topPercent} />
-                    </Box>
-                  )
-                })}
-              </Stack>
-            </Collapse>
-          </>
-        ) : (
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              What everyone else guessed
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
-              No crowd data yet — you&apos;re early. Check back after more people play.
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      <GameLeaderboardPanel
+        leaderboard={leaderboard}
+        loading={leaderboardLoading}
+        highlightAttemptId={result.attemptId}
+        highlightName={result.displayNameSnapshot}
+        highlightScore={result.score100}
+      />
+
+      <GameCommunityPanel
+        communityPerPerson={result.communityPerPerson}
+        people={people}
+        collapsible
+      />
 
       <GuestPlayBanner />
 
       <Stack spacing={1.5}>
-        <PrimaryActionButton to={`/game/${result.gameId}/play`} label="Review your picks" />
+        <PrimaryActionButton to={gameStatsPath(result.gameId)} label="Full game stats" />
+        <PrimaryActionButton to={`/game/${result.gameId}/play`} label="Review your picks" variant="outlined" />
         <PrimaryActionButton to="/" label="Back to games" variant="outlined" />
       </Stack>
     </div>

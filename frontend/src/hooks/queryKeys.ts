@@ -7,4 +7,7 @@ export const queryKeys = {
   gameForPlay: (gameId: string) => ['game-for-play', gameId] as const,
   myGameAttempt: (gameId: string) => ['my-game-attempt', gameId] as const,
   attemptResult: (attemptId: string) => ['attempt-result', attemptId] as const,
+  gameLeaderboard: (gameId: string) => ['game-leaderboard', gameId] as const,
+  gameCommunityStats: (gameId: string) => ['game-community-stats', gameId] as const,
+  playedGames: ['played-games'] as const,
 }

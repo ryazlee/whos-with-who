@@ -18,6 +18,7 @@ import type {
   GameForPlay,
   GameSummary,
   ID,
+  LeaderboardEntry,
   MatchAllSelections,
 } from './types'
 import type { WhoWithWhoDatastore } from './WhoWithWhoDatastore'
@@ -114,6 +115,34 @@ function gameForPlayFromDefinition(game: MockGameDefinition): GameForPlay {
 class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
   private attemptsById = new Map<ID, AttemptResult>()
 
+  private leaderboardForGame(gameId: ID): LeaderboardEntry[] {
+    const game = getMockGame(gameId)
+    const seeded = (game?.leaderboardScores ?? []).map((row, index) => ({
+      attemptId: row.attemptId,
+      displayName: row.displayName,
+      score100: row.score100,
+      correctCount: row.correctCount,
+      rank: index + 1,
+    }))
+
+    const live = [...this.attemptsById.values()]
+      .filter((a) => a.gameId === gameId)
+      .map((a) => ({
+        attemptId: a.attemptId,
+        displayName: a.displayNameSnapshot,
+        score100: a.score100,
+        correctCount: a.correctCount,
+        rank: 0,
+      }))
+
+    const merged = [...live, ...seeded]
+      .sort((a, b) => b.score100 - a.score100 || b.correctCount - a.correctCount)
+      .slice(0, 10)
+      .map((row, index) => ({ ...row, rank: index + 1 }))
+
+    return merged
+  }
+
   async listPopularGames(): Promise<GameSummary[]> {
     return MOCK_GAMES.filter((g) => g.visibility === 'public')
       .map(toSummary)
@@ -182,7 +211,7 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
     }
 
     this.attemptsById.set(attemptId, result)
-    saveAttemptResult(result)
+    saveAttemptResult(result, args.gameId)
     return result
   }
 
@@ -207,6 +236,21 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
     }
 
     throw new Error('Attempt not found')
+  }
+
+  async getGameLeaderboard(gameId: ID, _limit = 10): Promise<LeaderboardEntry[]> {
+    const game = getMockGame(gameId)
+    if (!game) throw new Error('Game not found')
+    return this.leaderboardForGame(gameId)
+  }
+
+  async getGameCommunityStats(gameId: ID): Promise<CommunityPerPerson> {
+    const game = getMockGame(gameId)
+    if (!game) throw new Error('Game not found')
+    return computeCommunityPerPerson({
+      people: game.people,
+      attempts: game.communityAttempts,
+    })
   }
 }
 
