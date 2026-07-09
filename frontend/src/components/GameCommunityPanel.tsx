@@ -1,66 +1,134 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, Collapse, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Button, LinearProgress, Stack, Typography } from '@mui/material'
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
-import type { CommunityPerPerson } from '../datastore/types'
+import type { CommunityPerPerson, ID } from '../datastore/types'
 import type { Person } from '../game/types'
+import {
+  flattenCommunityPicks,
+  isCommunityPickCorrect,
+  topCommunityPicks,
+} from '../lib/communityPicks'
 import PersonAvatar from './PersonAvatar'
 import SectionCard from './SectionCard'
 
 type Props = {
   communityPerPerson: CommunityPerPerson
   people: Person[]
-  /** When false, content is always visible (stats page). */
+  /** Map person id → correct partner (null = single). Enables green/red highlights. */
+  correctPartnerIdByPerson?: Map<ID, ID | null>
+  /** When false, uses SectionCard layout (stats page). */
   collapsible?: boolean
-  defaultOpen?: boolean
+}
+
+function pickLabel(
+  personId: ID,
+  partnerId: ID | null,
+  personNameById: Map<string, string>,
+) {
+  const name = personNameById.get(personId) ?? '?'
+  if (partnerId === null) return `${name} · Single`
+  return `${name} · With ${personNameById.get(partnerId) ?? '?'}`
+}
+
+function PickRow({
+  personId,
+  partnerId,
+  percent,
+  personById,
+  personNameById,
+  correctPartnerIdByPerson,
+}: {
+  personId: ID
+  partnerId: ID | null
+  percent: number
+  personById: Map<string, Person>
+  personNameById: Map<string, string>
+  correctPartnerIdByPerson?: Map<ID, ID | null>
+}) {
+  const person = personById.get(personId)
+  const correctness = isCommunityPickCorrect(personId, partnerId, correctPartnerIdByPerson)
+  const rowClass =
+    correctness === true
+      ? 'crowdPickRow crowdPickRow--correct'
+      : correctness === false
+        ? 'crowdPickRow crowdPickRow--wrong'
+        : 'crowdPickRow'
+
+  return (
+    <Box className={rowClass}>
+      <Box className="crowdPickRow__header">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+          {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
+          <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 0 }}>
+            {pickLabel(personId, partnerId, personNameById)}
+          </Typography>
+        </Box>
+        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+          {percent}%
+        </Typography>
+      </Box>
+      <LinearProgress variant="determinate" value={percent} className="crowdPickRow__bar" />
+    </Box>
+  )
 }
 
 export default function GameCommunityPanel({
   communityPerPerson,
   people,
+  correctPartnerIdByPerson,
   collapsible = true,
-  defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen || !collapsible)
+  const [expanded, setExpanded] = useState(false)
 
   const personById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
   const personNameById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people])
 
-  const partnerLabel = (partnerId: string | null) =>
-    partnerId === null ? 'Single' : (personNameById.get(partnerId) ?? '?')
+  const allPicks = useMemo(() => flattenCommunityPicks(communityPerPerson), [communityPerPerson])
+  const previewPicks = useMemo(() => topCommunityPicks(communityPerPerson, 5), [communityPerPerson])
+  const visiblePicks = expanded ? allPicks : previewPicks
+  const hasData = allPicks.length > 0
+  const canExpand = allPicks.length > previewPicks.length
 
-  const hasData = communityPerPerson.length > 0
-
-  const content = hasData ? (
-    <Stack spacing={1.5} sx={{ px: collapsible ? 2 : 0, pb: collapsible ? 2 : 0, pt: collapsible ? 0.5 : 0 }}>
-      {communityPerPerson.map((x) => {
-        const person = personById.get(x.personId)
-        return (
-          <Box key={x.personId}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 0.5,
-                gap: 1,
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                {person ? <PersonAvatar person={person} size={28} showName={false} /> : null}
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {personNameById.get(x.personId)}
-                </Typography>
-              </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                {partnerLabel(x.topPartnerId)} · {x.topPercent}%
-              </Typography>
-            </Box>
-            <LinearProgress variant="determinate" value={x.topPercent} />
-          </Box>
-        )
-      })}
+  const pickList = (
+    <Stack spacing={1.25} className="crowdPickList">
+      {visiblePicks.map((pick) => (
+        <PickRow
+          key={`${pick.personId}:${pick.partnerId ?? 'single'}`}
+          personId={pick.personId}
+          partnerId={pick.partnerId}
+          percent={pick.percent}
+          personById={personById}
+          personNameById={personNameById}
+          correctPartnerIdByPerson={correctPartnerIdByPerson}
+        />
+      ))}
     </Stack>
-  ) : (
+  )
+
+  const expandControl = hasData && canExpand ? (
+    <Button
+      fullWidth
+      onClick={() => setExpanded((v) => !v)}
+      endIcon={
+        <ExpandMoreOutlinedIcon
+          sx={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+        />
+      }
+      sx={{
+        justifyContent: 'space-between',
+        mt: 1,
+        px: collapsible ? 2 : 0,
+        py: 1,
+        color: 'text.secondary',
+        fontWeight: 500,
+        borderRadius: 0,
+      }}
+    >
+      {expanded ? 'Show top picks only' : `Show all ${allPicks.length} picks`}
+    </Button>
+  ) : null
+
+  const empty = (
     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
       No crowd data yet — check back after more people play.
     </Typography>
@@ -68,44 +136,41 @@ export default function GameCommunityPanel({
 
   if (!collapsible) {
     return (
-      <SectionCard title="What everyone guessed" subtitle="Community picks per person">
-        <Box sx={{ px: 0 }}>{content}</Box>
+      <SectionCard
+        title="What everyone guessed"
+        subtitle="Top crowd picks · green = matches answer, red = off"
+      >
+        {hasData ? (
+          <>
+            {pickList}
+            {expandControl}
+          </>
+        ) : (
+          empty
+        )}
       </SectionCard>
     )
   }
 
   return (
     <Box className="surfaceCard">
-      {hasData ? (
-        <>
-          <Button
-            fullWidth
-            onClick={() => setOpen((v) => !v)}
-            endIcon={
-              <ExpandMoreOutlinedIcon
-                sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-              />
-            }
-            sx={{
-              justifyContent: 'space-between',
-              px: 2,
-              py: 1.5,
-              color: 'text.primary',
-              fontWeight: 500,
-              borderRadius: 0,
-            }}
-          >
-            What everyone else guessed
-          </Button>
-          <Collapse in={open}>{content}</Collapse>
-        </>
-      ) : (
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-            What everyone else guessed
+      <Box sx={{ px: 2, pt: 1.5, pb: hasData ? 0.5 : 1.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+          What everyone else guessed
+        </Typography>
+        {hasData ? (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.35 }}>
+            Top 5 picks · green = matches answer, red = off
           </Typography>
-          {content}
+        ) : null}
+      </Box>
+      {hasData ? (
+        <Box sx={{ px: 2, pb: 2 }}>
+          {pickList}
+          {expandControl}
         </Box>
+      ) : (
+        <Box sx={{ px: 2, pb: 1.5 }}>{empty}</Box>
       )}
     </Box>
   )

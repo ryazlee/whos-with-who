@@ -35,6 +35,14 @@ export default function AttemptResultPage() {
   const correctAnswerText = (partnerId: string | null) =>
     partnerId === null ? 'Single' : `With ${partnerLabel(partnerId)}`
 
+  const correctPartnerIdByPerson = useMemo(
+    () =>
+      result
+        ? new Map(result.perPerson.map((row) => [row.personId, row.correctPartnerId]))
+        : new Map<string, string | null>(),
+    [result],
+  )
+
   if (loading) return <div className="page"><PageLoading /></div>
 
   if (error || !result) {
@@ -138,6 +146,7 @@ export default function AttemptResultPage() {
       <GameCommunityPanel
         communityPerPerson={result.communityPerPerson}
         people={people}
+        correctPartnerIdByPerson={correctPartnerIdByPerson}
         collapsible
       />
 

@@ -66,21 +66,20 @@ function computeCommunityPerPerson(args: {
       counts.set(a.selectedPartnerId, (counts.get(a.selectedPartnerId) ?? 0) + 1)
     }
 
-    let topPartnerId: ID | null = null
-    let topCount = -1
-    for (const [partnerId, count] of counts.entries()) {
-      if (count > topCount) {
-        topCount = count
-        topPartnerId = partnerId
-      }
-    }
+    const picks = [...counts.entries()]
+      .map(([partnerId, count]) => ({
+        partnerId,
+        percent: Math.round((count / total) * 100),
+      }))
+      .sort((a, b) => b.percent - a.percent)
 
-    const topPercent = Math.round((topCount / total) * 100)
-    const singleCount = counts.get(null) ?? 0
-    const singlePercent = Math.round((singleCount / total) * 100)
+    const topPartnerId = picks[0]?.partnerId ?? null
+    const topPercent = picks[0]?.percent ?? 0
+    const singlePercent = picks.find((pick) => pick.partnerId === null)?.percent ?? 0
 
     return {
       personId: p.id,
+      picks,
       topPartnerId,
       topPercent,
       singlePercent,

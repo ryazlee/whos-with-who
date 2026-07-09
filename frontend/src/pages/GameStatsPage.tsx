@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import EmptyState from '../components/EmptyState'
@@ -31,6 +32,15 @@ export default function GameStatsPage() {
   const { leaderboard, loading: leaderboardLoading } = useGameLeaderboard(statsEnabled ? gameId : '')
   const { communityStats, loading: communityLoading } = useGameCommunityStats(
     statsEnabled ? gameId : '',
+  )
+
+  const yourResult = completed ? getLocalAttemptResult(completed.attemptId) : null
+  const correctPartnerIdByPerson = useMemo(
+    () =>
+      yourResult
+        ? new Map(yourResult.perPerson.map((row) => [row.personId, row.correctPartnerId]))
+        : new Map<string, string | null>(),
+    [yourResult],
   )
 
   if (!gameId) {
@@ -72,7 +82,6 @@ export default function GameStatsPage() {
 
   const people = playGame?.people ?? []
   const statsLoading = playLoading || leaderboardLoading || communityLoading
-  const yourResult = completed ? getLocalAttemptResult(completed.attemptId) : null
 
   return (
     <div className="page">
@@ -103,6 +112,7 @@ export default function GameStatsPage() {
             <GameCommunityPanel
               communityPerPerson={communityStats}
               people={people}
+              correctPartnerIdByPerson={correctPartnerIdByPerson}
               collapsible={false}
             />
           </>

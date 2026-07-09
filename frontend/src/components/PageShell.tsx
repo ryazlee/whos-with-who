@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { APP_HOME_HREF } from '../lib/appBase'
+import { useAuth } from '../contexts/AuthContext'
+import { userDisplayLabel } from '../lib/userDisplay'
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -52,8 +54,10 @@ export default function PageShell({ children }: Props) {
   const path = useLocation().pathname
   const navigate = useNavigate()
   const { mode, toggleMode } = useThemeMode()
+  const { user, loading: authLoading } = useAuth()
   const activeKey = activeKeyFromPath(path)
   const immersive = isImmersivePath(path)
+  const signedInLabel = user ? userDisplayLabel(user) : null
 
   return (
     <div className={immersive ? 'appShell appShell--immersive' : 'appShell'}>
@@ -69,6 +73,13 @@ export default function PageShell({ children }: Props) {
                 <ArrowBackOutlinedIcon />
               </IconButton>
               <span className="immersiveTitle">{immersiveTitle(path)}</span>
+              {!authLoading && signedInLabel ? (
+                <Link to="/me" className="userChip userChip--immersive" title={signedInLabel}>
+                  {signedInLabel}
+                </Link>
+              ) : (
+                <Box sx={{ width: 40 }} aria-hidden />
+              )}
               <Box className="themeToggle">
                 <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
                   <IconButton
@@ -108,6 +119,12 @@ export default function PageShell({ children }: Props) {
                   ),
                 )}
               </nav>
+
+              {!authLoading && signedInLabel ? (
+                <Link to="/me" className="userChip" title={signedInLabel}>
+                  {signedInLabel}
+                </Link>
+              ) : null}
 
               <Box className="themeToggle">
                 <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>

@@ -41,11 +41,18 @@ export type GameForPlay = {
 
 export type MatchAllSelections = Record<ID, ID | null>
 
+export type CommunityGuessPick = {
+  partnerId: ID | null
+  percent: number
+}
+
 export type CommunityPerPerson = Array<{
   personId: ID
-  topPartnerId: ID | null
-  topPercent: number
-  singlePercent: number
+  /** All crowd guesses for this person, highest % first. */
+  picks?: CommunityGuessPick[]
+  topPartnerId?: ID | null
+  topPercent?: number
+  singlePercent?: number
 }>
 
 export type LeaderboardEntry = {

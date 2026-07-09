@@ -177,6 +177,7 @@ main {
   flex-direction: column;
   gap: 0.875rem;
   height: 100%;
+  min-width: 0;
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
@@ -367,6 +368,7 @@ html.theme-dark .meGameRow__action--danger:hover {
 .gameCard__eyebrow {
   margin: 0;
   align-self: flex-start;
+  max-width: 100%;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.045em;
@@ -456,6 +458,7 @@ html.theme-dark .gameCard__eyebrow {
   letter-spacing: 0.02em;
   color: var(--text-muted) !important;
   margin-top: 0.125rem;
+  overflow-wrap: anywhere;
 }
 
 .gameCard__tags {
@@ -536,6 +539,35 @@ html.theme-dark .gameCard__eyebrow {
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.userChip {
+  margin-left: auto;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 6.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userChip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border-light));
+}
+
+.userChip--immersive {
+  margin-left: 0;
+  max-width: 5.5rem;
 }
 
 .desktopNav {
@@ -616,6 +648,12 @@ html.theme-dark .gameCard__eyebrow {
 
   .desktopNav {
     display: flex;
+  }
+
+  .userChip {
+    margin-left: 0;
+    max-width: 12rem;
+    font-size: 0.8125rem;
   }
 
   .themeToggle {
@@ -923,9 +961,72 @@ html.theme-dark .gameCard__eyebrow {
   font-variant-numeric: tabular-nums;
 }
 
-@media (min-width: 480px) {
-  .gameGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.crowdPickList {
+  display: flex;
+  flex-direction: column;
+}
+
+.crowdPickRow {
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+}
+
+.crowdPickRow--correct {
+  border-color: var(--result-correct-border);
+  background: color-mix(in srgb, var(--result-correct) 10%, var(--surface));
+}
+
+.crowdPickRow--wrong {
+  border-color: var(--result-wrong-border);
+  background: color-mix(in srgb, var(--result-wrong) 8%, var(--surface));
+}
+
+.crowdPickRow__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.375rem;
+}
+
+.crowdPickRow__bar {
+  height: 6px !important;
+  border-radius: 999px;
+}
+
+.crowdPickRow--correct .crowdPickRow__bar {
+  color: var(--result-correct);
+}
+
+.crowdPickRow--wrong .crowdPickRow__bar {
+  color: var(--result-wrong);
+}
+
+@media (max-width: 767px) {
+  /* Me-page rows: stack faces above text (desktop keeps side-by-side). */
+  .gameCardStack--inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gameCardStack--inline .gameCard__description {
+    -webkit-line-clamp: 2;
+  }
+
+  .meGameRow__footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .meGameRow__actions {
+    gap: 0.5rem 0.75rem;
+  }
+
+  .meGameRow__action {
+    padding: 0.25rem 0;
   }
 }
 
