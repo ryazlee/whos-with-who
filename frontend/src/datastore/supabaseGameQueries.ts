@@ -54,7 +54,7 @@ export async function fetchGameSummaries(
   const [
     { data: people, error: peopleError },
     { data: tagRows, error: tagsError },
-    { data: attempts, error: attemptsError },
+    { data: attemptCounts, error: attemptsError },
   ] = await Promise.all([
     sb
       .from('game_people')
@@ -62,7 +62,7 @@ export async function fetchGameSummaries(
       .in('game_id', gameIds)
       .order('sort_order'),
     sb.from('game_tags').select('game_id, tags ( slug )').in('game_id', gameIds),
-    sb.from('game_attempts').select('game_id').in('game_id', gameIds),
+    sb.rpc('game_attempt_counts', { p_game_ids: gameIds }),
   ])
 
   if (peopleError) throw peopleError
@@ -91,8 +91,8 @@ export async function fetchGameSummaries(
   }
 
   const attemptCountByGame = new Map<string, number>()
-  for (const a of attempts ?? []) {
-    attemptCountByGame.set(a.game_id, (attemptCountByGame.get(a.game_id) ?? 0) + 1)
+  for (const row of (attemptCounts ?? []) as Array<{ game_id: string; play_count: number }>) {
+    attemptCountByGame.set(row.game_id, row.play_count)
   }
 
   return gameRows.map((g) => {

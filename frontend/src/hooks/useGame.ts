@@ -173,6 +173,8 @@ export function useSubmitMatchAllAttempt() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.gameLeaderboard(attempt.gameId) })
       void queryClient.invalidateQueries({ queryKey: queryKeys.gameCommunityStats(attempt.gameId) })
       void queryClient.invalidateQueries({ queryKey: queryKeys.playedGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.popularGames })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.gameSummary(attempt.gameId) })
       navigate(`/attempt/${attempt.attemptId}/result`)
     },
   })
