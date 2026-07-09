@@ -17,6 +17,8 @@ import { normalizeAllowedModes } from '../game/matchingModes'
 import { gamePairingShape } from '../game/pairMatching'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
 import { selectionsFromAttemptResult } from '../lib/attemptSelections'
+import { prefetchPersonImages } from '../lib/imageCache'
+import { orderPeopleForPlay } from '../lib/shufflePeople'
 import { applyAutoSinglesIfNeeded } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
@@ -59,7 +61,13 @@ export default function PlayGamePage() {
   const [activeMode, setActiveMode] = useState<MatchingMode>('tap_pairs')
   const [selections, setSelections] = useState<MatchAllSelections>({})
 
-  const people = game?.people ?? []
+  const people = useMemo(
+    () =>
+      game
+        ? orderPeopleForPlay(game.gameId, game.people, isReview, completedAttempt?.people)
+        : [],
+    [game, isReview, completedAttempt],
+  )
   const allowSingleChoice = game?.allowSingleChoice ?? true
   const singleCount = game?.singleCount ?? 0
   const { pairCount: pairsInGame } = gamePairingShape(people.length, singleCount)
@@ -68,6 +76,11 @@ export default function PlayGamePage() {
     () => normalizeAllowedModes(game?.allowedMatchingModes),
     [game?.allowedMatchingModes],
   )
+
+  useEffect(() => {
+    if (people.length === 0) return
+    prefetchPersonImages(people)
+  }, [people])
 
   useEffect(() => {
     if (!game) return

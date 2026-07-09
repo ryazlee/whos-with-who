@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import type { Person } from '../game/types'
-import { resolvePersonImageUrl } from '../lib/personAvatar'
+import { useCachedPersonImageUrl } from '../lib/imageCache'
 
 type Props = {
   person: Person
@@ -30,6 +30,8 @@ export default function PersonAvatar({
   onDragOver,
   onDrop,
 }: Props) {
+  const src = useCachedPersonImageUrl(person.imageUrl, person.name)
+
   return (
     <Box
       component="button"
@@ -66,7 +68,7 @@ export default function PersonAvatar({
     >
       <Box
         component="img"
-        src={resolvePersonImageUrl(person.imageUrl, person.name)}
+        src={src}
         alt={person.name}
         sx={{
           width: size,

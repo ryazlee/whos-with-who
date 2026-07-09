@@ -27,8 +27,11 @@ export default function AttemptResultPage() {
   const personById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
   const personNameById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people])
 
-  const label = (partnerId: string | null) =>
+  const partnerLabel = (partnerId: string | null) =>
     partnerId === null ? 'Single' : (personNameById.get(partnerId) ?? '?')
+
+  const correctAnswerText = (partnerId: string | null) =>
+    partnerId === null ? 'Single' : `With ${partnerLabel(partnerId)}`
 
   if (loading) return <div className="page"><PageLoading /></div>
 
@@ -91,18 +94,18 @@ export default function AttemptResultPage() {
                   </Typography>
                   {isCorrect ? (
                     <Typography component="p" className="resultPickRow__answer resultPickRow__answer--correct">
-                      With {label(row.selectedPartnerId)}
+                      {correctAnswerText(row.selectedPartnerId)}
                     </Typography>
                   ) : (
                     <>
                       <Typography component="p" className="resultPickRow__answer resultPickRow__answer--yours">
-                        Your pick: {label(row.selectedPartnerId)}
+                        Your pick: {partnerLabel(row.selectedPartnerId)}
                       </Typography>
                       <Typography
                         component="p"
                         className="resultPickRow__answer resultPickRow__answer--correctAnswer"
                       >
-                        Correct: {label(row.correctPartnerId)}
+                        Correct: {partnerLabel(row.correctPartnerId)}
                       </Typography>
                     </>
                   )}
@@ -159,7 +162,7 @@ export default function AttemptResultPage() {
                           </Typography>
                         </Box>
                         <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                          {label(x.topPartnerId)} · {x.topPercent}%
+                          {partnerLabel(x.topPartnerId)} · {x.topPercent}%
                         </Typography>
                       </Box>
                       <LinearProgress variant="determinate" value={x.topPercent} />

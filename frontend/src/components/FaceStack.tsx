@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { resolvePersonImageUrl } from '../lib/personAvatar'
+import { useCachedPersonImageUrl } from '../lib/imageCache'
 
 type PreviewPerson = {
   id: string
@@ -72,14 +72,7 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
       aria-hidden
     >
       {people.slice(0, faceCount).map((p, i) => (
-        <Box
-          key={p.id}
-          component="img"
-          src={resolvePersonImageUrl(p.imageUrl, p.name)}
-          alt={p.name}
-          title={p.name}
-          sx={{ ...faceImgSx(size, i), zIndex: max - i }}
-        />
+        <FaceStackImage key={p.id} person={p} size={size} index={i} zIndex={max - i} />
       ))}
 
       {overflow > 0 ? (
@@ -110,5 +103,29 @@ export default function FaceStack({ people, totalCount, size = 40, max = 4 }: Pr
         )
       })}
     </Box>
+  )
+}
+
+function FaceStackImage({
+  person,
+  size,
+  index,
+  zIndex,
+}: {
+  person: PreviewPerson
+  size: number
+  index: number
+  zIndex: number
+}) {
+  const src = useCachedPersonImageUrl(person.imageUrl, person.name)
+
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt={person.name}
+      title={person.name}
+      sx={{ ...faceImgSx(size, index), zIndex }}
+    />
   )
 }

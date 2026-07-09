@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
+import { useCachedPersonImageUrl } from '../lib/imageCache'
 
 export type PairingPerson = {
   id: string
@@ -18,11 +19,13 @@ export type PairingPerson = {
 }
 
 function PersonThumb({ person, size = 40 }: { person: PairingPerson; size?: number }) {
+  const src = useCachedPersonImageUrl(person.imageUrl ?? '', person.name)
+
   if (person.imageUrl) {
     return (
       <Box
         component="img"
-        src={person.imageUrl}
+        src={src}
         alt=""
         sx={{
           width: size,
