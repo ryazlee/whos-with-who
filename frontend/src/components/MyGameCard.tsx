@@ -7,7 +7,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
@@ -19,7 +21,6 @@ import type { GameSummary } from '../datastore/types'
 import { useDeleteGame, useUpdateGameVisibility } from '../hooks/useGame'
 import { absoluteGameUrl, gamePlayPath } from '../lib/gameUrl'
 import GameCardContent from './GameCardContent'
-import PrimaryActionButton from './PrimaryActionButton'
 
 type Props = {
   game: GameSummary
@@ -55,28 +56,51 @@ export default function MyGameCard({ game, onDeleted }: Props) {
   return (
     <>
       <Box className="surfaceCard gameCard gameCard--manage">
-        <GameCardContent game={game} tagLimit={4} avatarSize={40} avatarMax={3} />
+        <GameCardContent game={game} tagLimit={3} avatarSize={36} avatarMax={3} />
 
-        <Stack spacing={0.75} className="gameCard__actions">
-          <PrimaryActionButton to={gamePlayPath(game.id)} label="Play" sx={{ py: 1.05 }} />
-          <Button
-            component={RouterLink}
-            to={`/game/${game.id}/edit`}
-            variant="text"
-            fullWidth
-            size="small"
-            startIcon={<SettingsOutlinedIcon sx={{ fontSize: '1.1rem' }} />}
-            sx={{ color: 'text.secondary', py: 0.75 }}
-          >
-            Settings
-          </Button>
-        </Stack>
+        <Stack spacing={0.75} className="gameCard__manageToolbar">
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+            <Button
+              component={RouterLink}
+              to={gamePlayPath(game.id)}
+              variant="contained"
+              size="small"
+              sx={{ minWidth: 64, px: 1.5, py: 0.5, fontWeight: 600 }}
+            >
+              Play
+            </Button>
+            <Button
+              component={RouterLink}
+              to={`/game/${game.id}/edit`}
+              variant="outlined"
+              size="small"
+              startIcon={<SettingsOutlinedIcon sx={{ fontSize: '1rem !important' }} />}
+              sx={{ px: 1.25, py: 0.5 }}
+            >
+              Settings
+            </Button>
+            <Box sx={{ flex: 1, minWidth: 8 }} />
+            <Tooltip title={copied ? 'Copied!' : 'Copy link'}>
+              <IconButton size="small" onClick={() => void copyLink()} aria-label="Copy link">
+                <ContentCopyOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete game">
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => setDeleteOpen(true)}
+                aria-label="Delete game"
+              >
+                <DeleteOutlineOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
 
-        <Box className="gameCard__manageSection">
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
-            Visibility
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.25 }}>
+              Visibility
+            </Typography>
             <Chip
               label="Public"
               size="small"
@@ -84,7 +108,7 @@ export default function MyGameCard({ game, onDeleted }: Props) {
               disabled={visibilityMutation.isPending}
               color={isPublic ? 'primary' : 'default'}
               variant={isPublic ? 'filled' : 'outlined'}
-              sx={{ height: 28, borderRadius: '8px' }}
+              sx={{ height: 24, fontSize: '0.7rem', borderRadius: '6px' }}
             />
             <Chip
               label="Unlisted"
@@ -93,48 +117,18 @@ export default function MyGameCard({ game, onDeleted }: Props) {
               disabled={visibilityMutation.isPending}
               color={!isPublic ? 'primary' : 'default'}
               variant={!isPublic ? 'filled' : 'outlined'}
-              sx={{ height: 28, borderRadius: '8px' }}
+              sx={{ height: 24, fontSize: '0.7rem', borderRadius: '6px' }}
             />
-          </Box>
+          </Stack>
 
           {visibilityMutation.error ? (
-            <Alert severity="error" sx={{ mb: 1, py: 0.25 }}>
+            <Alert severity="error" sx={{ py: 0, '& .MuiAlert-message': { py: 0.5 } }}>
               {visibilityMutation.error instanceof Error
                 ? visibilityMutation.error.message
                 : 'Could not update visibility.'}
             </Alert>
           ) : null}
-
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ wordBreak: 'break-all', lineHeight: 1.4, display: 'block', mb: 0.75 }}
-          >
-            {shareUrl}
-          </Typography>
-          <Button
-            variant="outlined"
-            fullWidth
-            size="small"
-            startIcon={<ContentCopyOutlinedIcon />}
-            onClick={() => void copyLink()}
-            sx={{ borderRadius: '10px', mb: 0.75 }}
-          >
-            {copied ? 'Copied' : 'Copy link'}
-          </Button>
-
-          <Button
-            fullWidth
-            size="small"
-            color="error"
-            variant="text"
-            startIcon={<DeleteOutlineOutlinedIcon />}
-            onClick={() => setDeleteOpen(true)}
-            sx={{ py: 0.5 }}
-          >
-            Delete game
-          </Button>
-        </Box>
+        </Stack>
       </Box>
 
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>

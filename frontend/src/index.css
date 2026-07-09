@@ -195,7 +195,12 @@ html.theme-dark .gameCard {
 }
 
 .gameCard--manage {
-  gap: 1rem;
+  gap: 0.75rem;
+  padding: 0.875rem;
+}
+
+.gameCard__manageToolbar {
+  margin-top: -0.125rem;
 }
 
 .gameCard__eyebrow {
@@ -295,15 +300,6 @@ html.theme-dark .gameCard__eyebrow {
   padding: 0.2rem 0.55rem;
   border-radius: 6px;
   line-height: 1.3;
-}
-
-.gameCard__actions {
-  margin-top: -0.125rem;
-}
-
-.gameCard__manageSection {
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--border);
 }
 
 .appShell {

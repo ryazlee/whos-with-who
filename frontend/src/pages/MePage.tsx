@@ -88,7 +88,7 @@ export default function MePage() {
             action={<PrimaryActionButton to="/create" label="Create a game" />}
           />
         ) : (
-          <Stack spacing={1.25} sx={{ px: 2, pb: 2 }}>
+          <Stack spacing={1} sx={{ px: 1.5, pb: 1.5, pt: 0.25 }}>
             {games.map((game) => (
               <MyGameCard key={game.id} game={game} />
             ))}
