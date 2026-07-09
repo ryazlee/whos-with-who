@@ -12,6 +12,7 @@ import GameStatsPage from './pages/GameStatsPage'
 import MePage from './pages/MePage'
 import NotFoundPage from './pages/NotFoundPage'
 import PageShell from './components/PageShell'
+import EnsureHomeTrailingSlash from './components/EnsureHomeTrailingSlash'
 import MuiAppProvider from './components/MuiAppProvider'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -23,6 +24,7 @@ function App() {
       <MuiAppProvider>
         <AuthProvider>
           <BrowserRouter basename={basename || undefined}>
+          <EnsureHomeTrailingSlash />
           <PageShell>
             <Routes>
             <Route path="/" element={<HomePage />} />

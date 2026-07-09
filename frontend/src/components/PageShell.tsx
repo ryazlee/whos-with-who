@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { APP_HOME_HREF } from '../lib/appBase'
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -80,20 +81,30 @@ export default function PageShell({ children }: Props) {
             </>
           ) : (
             <>
-              <Link to="/" className="brand">
+              <a href={APP_HOME_HREF} className="brand">
                 <span className="brandText">Who&apos;s With Who?</span>
-              </Link>
+              </a>
 
               <nav className="desktopNav" aria-label="Main">
-                {NAV.map(({ key, label, to }) => (
-                  <Link
-                    key={key}
-                    to={to}
-                    className={activeKey === key ? 'desktopNavLink active' : 'desktopNavLink'}
-                  >
-                    {label}
-                  </Link>
-                ))}
+                {NAV.map(({ key, label, to }) =>
+                  key === 'home' ? (
+                    <a
+                      key={key}
+                      href={APP_HOME_HREF}
+                      className={activeKey === key ? 'desktopNavLink active' : 'desktopNavLink'}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={key}
+                      to={to}
+                      className={activeKey === key ? 'desktopNavLink active' : 'desktopNavLink'}
+                    >
+                      {label}
+                    </Link>
+                  ),
+                )}
               </nav>
 
               <Box className="themeToggle">
@@ -125,8 +136,8 @@ export default function PageShell({ children }: Props) {
                 label={label}
                 value={key}
                 icon={<Icon />}
-                component={Link}
-                to={to}
+                component={key === 'home' ? 'a' : Link}
+                {...(key === 'home' ? { href: APP_HOME_HREF } : { to })}
                 sx={{
                   minWidth: 0,
                   '& .MuiBottomNavigationAction-label': {

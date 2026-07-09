@@ -1,5 +1,6 @@
 import { Button, type ButtonProps } from '@mui/material'
 import { Link as RouterLink, type To } from 'react-router-dom'
+import { APP_HOME_HREF, isAppHomeTarget } from '../lib/appBase'
 
 type Props = Omit<ButtonProps, 'children'> & {
   label: string
@@ -8,7 +9,12 @@ type Props = Omit<ButtonProps, 'children'> & {
 
 /** Full-width primary CTA — same on mobile and desktop. */
 export default function PrimaryActionButton({ label, to, sx, ...props }: Props) {
-  const linkProps = to != null ? { component: RouterLink, to } : {}
+  const linkProps =
+    to != null
+      ? typeof to === 'string' && isAppHomeTarget(to)
+        ? { component: 'a' as const, href: APP_HOME_HREF }
+        : { component: RouterLink, to }
+      : {}
 
   return (
     <Button
