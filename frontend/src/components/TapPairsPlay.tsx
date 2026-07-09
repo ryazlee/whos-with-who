@@ -21,6 +21,7 @@ type Props = {
   pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
+  readOnly?: boolean
 }
 
 export default function TapPairsPlay({
@@ -30,6 +31,7 @@ export default function TapPairsPlay({
   pairsInGame,
   selections,
   onChange,
+  readOnly = false,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -101,7 +103,13 @@ export default function TapPairsPlay({
         assigned={assignedCount}
         singlesInGame={singlesInGame}
         pairsInGame={pairsInGame}
-        hint={selectedId ? `Pair with ${peopleById.get(selectedId)?.name}` : 'Tap one person, then their partner'}
+        hint={
+          readOnly
+            ? 'Your submitted picks'
+            : selectedId
+              ? `Pair with ${peopleById.get(selectedId)?.name}`
+              : 'Tap one person, then their partner'
+        }
       />
 
       {pairs.length > 0 ? (
@@ -124,7 +132,7 @@ export default function TapPairsPlay({
                   size={72}
                   paired
                   selected={selectedId === a.id}
-                  onClick={() => handleTap(a.id)}
+                  onClick={readOnly ? undefined : () => handleTap(a.id)}
                 />
                 <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
                   ↔
@@ -134,7 +142,7 @@ export default function TapPairsPlay({
                   size={72}
                   paired
                   selected={selectedId === b.id}
-                  onClick={() => handleTap(b.id)}
+                  onClick={readOnly ? undefined : () => handleTap(b.id)}
                 />
               </Box>
             ))}
@@ -161,7 +169,7 @@ export default function TapPairsPlay({
                 size={76}
                 paired
                 selected={selectedId === p.id}
-                onClick={() => handleTap(p.id)}
+                onClick={readOnly ? undefined : () => handleTap(p.id)}
               />
             ))}
           </Box>
@@ -186,14 +194,14 @@ export default function TapPairsPlay({
                 person={p}
                 size={80}
                 selected={selectedId === p.id}
-                onClick={() => handleTap(p.id)}
+                onClick={readOnly ? undefined : () => handleTap(p.id)}
               />
             ))}
           </Box>
         </Box>
       ) : null}
 
-      {selectedId && allowSingleChoice ? (
+      {!readOnly && selectedId && allowSingleChoice ? (
         <Button
           variant="outlined"
           onClick={handleMarkSingle}
@@ -204,7 +212,7 @@ export default function TapPairsPlay({
         </Button>
       ) : null}
 
-      {selectedId ? (
+      {!readOnly && selectedId ? (
         <Button
           variant="text"
           color="inherit"

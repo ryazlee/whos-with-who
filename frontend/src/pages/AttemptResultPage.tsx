@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Button, Collapse, LinearProgress, Stack, Typography } from '@mui/material'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined'
 import GuestPlayBanner from '../components/GuestPlayBanner'
 import PageError from '../components/PageError'
@@ -105,7 +107,16 @@ export default function AttemptResultPage() {
                     </>
                   )}
                 </Box>
-                <span className="resultPickRow__badge">{isCorrect ? 'Right' : 'Wrong'}</span>
+                <span
+                  className="resultPickRow__badge"
+                  aria-label={isCorrect ? 'Correct' : 'Incorrect'}
+                >
+                  {isCorrect ? (
+                    <CheckRoundedIcon sx={{ fontSize: 18 }} />
+                  ) : (
+                    <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                  )}
+                </span>
               </Box>
             )
           })}
@@ -172,7 +183,10 @@ export default function AttemptResultPage() {
 
       <GuestPlayBanner />
 
-      <PrimaryActionButton to="/" label="Back to games" />
+      <Stack spacing={1.5}>
+        <PrimaryActionButton to={`/game/${result.gameId}/play`} label="Review your picks" />
+        <PrimaryActionButton to="/" label="Back to games" variant="outlined" />
+      </Stack>
     </div>
   )
 }

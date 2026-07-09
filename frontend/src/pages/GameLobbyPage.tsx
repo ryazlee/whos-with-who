@@ -1,4 +1,5 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Stack } from '@mui/material'
+import { useParams } from 'react-router-dom'
 import GameSummaryHero from '../components/GameSummaryHero'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
@@ -12,10 +13,6 @@ export default function GameLobbyPage() {
   const gameId = id ?? ''
   const completed = gameId ? getCompletedAttemptForGame(gameId) : null
   const { game, loading, error } = useGameSummary(gameId)
-
-  if (completed) {
-    return <Navigate to={`/attempt/${completed.attemptId}/result`} replace />
-  }
 
   if (loading) return <div className="page"><PageLoading /></div>
 
@@ -33,10 +30,24 @@ export default function GameLobbyPage() {
 
       <StickyActionBar>
         <div className="stickyActionBarInner playSubmitDock">
-          <PrimaryActionButton
-            to={`/game/${game.id}/play`}
-            label="Play"
-          />
+          {completed ? (
+            <Stack spacing={1} sx={{ width: '100%' }}>
+              <PrimaryActionButton
+                to={`/game/${game.id}/play`}
+                label="Review your picks"
+              />
+              <PrimaryActionButton
+                to={`/attempt/${completed.attemptId}/result`}
+                label={`View score (${completed.score100})`}
+                variant="outlined"
+              />
+            </Stack>
+          ) : (
+            <PrimaryActionButton
+              to={`/game/${game.id}/play`}
+              label="Play"
+            />
+          )}
         </div>
       </StickyActionBar>
     </div>

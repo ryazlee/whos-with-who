@@ -22,6 +22,7 @@ type Props = {
   pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
+  readOnly?: boolean
 }
 
 type NodePos = { x: number; y: number; person: Person }
@@ -45,6 +46,7 @@ export default function DrawLinesPlay({
   pairsInGame,
   selections,
   onChange,
+  readOnly = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(360)
@@ -211,9 +213,11 @@ export default function DrawLinesPlay({
         singlesInGame={singlesInGame}
         pairsInGame={pairsInGame}
         hint={
-          dragFromId
-            ? 'Release on a partner to connect'
-            : 'Drag a line between two people, or tap one then another'
+          readOnly
+            ? 'Your submitted picks'
+            : dragFromId
+              ? 'Release on a partner to connect'
+              : 'Drag a line between two people, or tap one then another'
         }
       />
 
@@ -225,14 +229,18 @@ export default function DrawLinesPlay({
             width: '100%',
             height,
             mx: 'auto',
-            touchAction: 'none',
+            touchAction: readOnly ? 'auto' : 'none',
             userSelect: 'none',
           }}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handleCanvasPointerUp}
-          onPointerLeave={() => {
-            if (dragFromId) setDragPoint(null)
-          }}
+          onPointerMove={readOnly ? undefined : handlePointerMove}
+          onPointerUp={readOnly ? undefined : handleCanvasPointerUp}
+          onPointerLeave={
+            readOnly
+              ? undefined
+              : () => {
+                  if (dragFromId) setDragPoint(null)
+                }
+          }
         >
           <Box
             component="svg"
@@ -287,8 +295,8 @@ export default function DrawLinesPlay({
                   transform: 'translate(-50%, -50%)',
                   zIndex: selectedId === node.person.id || dragFromId === node.person.id ? 2 : 1,
                 }}
-                onPointerDown={(e) => handlePointerDown(node.person.id, e)}
-                onPointerUp={(e) => handlePointerUp(node.person.id, e)}
+                onPointerDown={readOnly ? undefined : (e) => handlePointerDown(node.person.id, e)}
+                onPointerUp={readOnly ? undefined : (e) => handlePointerUp(node.person.id, e)}
               >
                 <PersonAvatar
                   person={node.person}
@@ -303,17 +311,19 @@ export default function DrawLinesPlay({
         </Box>
 
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-          Lines show your pairs. Drag from one face to another to connect them.
+          {readOnly
+            ? 'Lines show the pairs you submitted.'
+            : 'Lines show your pairs. Drag from one face to another to connect them.'}
         </Typography>
       </Box>
 
-      {selectedId && allowSingleChoice ? (
+      {!readOnly && selectedId && allowSingleChoice ? (
         <Button variant="outlined" onClick={handleMarkSingle} fullWidth sx={{ py: 1.1, borderStyle: 'dashed' }}>
           Mark {peopleById.get(selectedId)?.name} as single
         </Button>
       ) : null}
 
-      {selectedId ? (
+      {!readOnly && selectedId ? (
         <Button
           variant="text"
           color="inherit"

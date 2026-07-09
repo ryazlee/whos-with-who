@@ -25,6 +25,7 @@ type Props = {
   pairsInGame: number
   selections: MatchAllSelections
   onChange: (selections: MatchAllSelections) => void
+  readOnly?: boolean
 }
 
 function toPairingPerson(p: Person): PairingPerson {
@@ -38,6 +39,7 @@ export default function MatchAllPlay({
   pairsInGame,
   selections,
   onChange,
+  readOnly = false,
 }: Props) {
   const peopleIds = useMemo(() => people.map((p) => p.id), [people])
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
@@ -87,10 +89,16 @@ export default function MatchAllPlay({
         assigned={assigned}
         singlesInGame={singlesInGame}
         pairsInGame={pairsInGame}
-        hint={allowSingleChoice ? 'Match everyone or mark singles' : 'Match everyone into pairs'}
+        hint={
+          readOnly
+            ? 'Your submitted picks'
+            : allowSingleChoice
+              ? 'Match everyone or mark singles'
+              : 'Match everyone into pairs'
+        }
       />
 
-      {editablePeople.length > 0 ? (
+      {!readOnly && editablePeople.length > 0 ? (
         <PairingSection
           title={editablePeople.length === 1 ? 'Last person' : 'Match people'}
           subtitle="Pick a partner — they'll both leave this list"
@@ -132,7 +140,7 @@ export default function MatchAllPlay({
               key={a.id}
               left={toPairingPerson(a)}
               right={toPairingPerson(b)}
-              onUnpair={() => onChange(clearMatchAllPair(selections, a.id))}
+              onUnpair={readOnly ? undefined : () => onChange(clearMatchAllPair(selections, a.id))}
             />
           ))}
         </PairingSection>
@@ -144,11 +152,15 @@ export default function MatchAllPlay({
             <SingleResultRow
               key={p.id}
               person={toPairingPerson(p)}
-              onChange={() => {
-                const next = { ...selections }
-                delete next[p.id]
-                onChange(next)
-              }}
+              onChange={
+                readOnly
+                  ? undefined
+                  : () => {
+                      const next = { ...selections }
+                      delete next[p.id]
+                      onChange(next)
+                    }
+              }
             />
           ))}
         </PairingSection>

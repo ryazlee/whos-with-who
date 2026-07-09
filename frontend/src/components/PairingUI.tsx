@@ -186,7 +186,7 @@ export function PairResultRow({
 }: {
   left: PairingPerson
   right: PairingPerson
-  onUnpair: () => void
+  onUnpair?: () => void
 }) {
   return (
     <Box
@@ -211,14 +211,16 @@ export function PairResultRow({
           {right.name}
         </Typography>
       </Box>
-      <Button
-        size="small"
-        color="inherit"
-        onClick={onUnpair}
-        sx={{ flexShrink: 0, fontSize: '0.8rem', minWidth: 0, px: 1 }}
-      >
-        Unpair
-      </Button>
+      {onUnpair ? (
+        <Button
+          size="small"
+          color="inherit"
+          onClick={onUnpair}
+          sx={{ flexShrink: 0, fontSize: '0.8rem', minWidth: 0, px: 1 }}
+        >
+          Unpair
+        </Button>
+      ) : null}
     </Box>
   )
 }
@@ -228,7 +230,7 @@ export function SingleResultRow({
   onChange,
 }: {
   person: PairingPerson
-  onChange: () => void
+  onChange?: () => void
 }) {
   return (
     <Box
@@ -252,9 +254,11 @@ export function SingleResultRow({
           </Typography>
         </Box>
       </Box>
-      <Button size="small" color="inherit" onClick={onChange} sx={{ flexShrink: 0, fontSize: '0.8rem' }}>
-        Change
-      </Button>
+      {onChange ? (
+        <Button size="small" color="inherit" onClick={onChange} sx={{ flexShrink: 0, fontSize: '0.8rem' }}>
+          Change
+        </Button>
+      ) : null}
     </Box>
   )
 }

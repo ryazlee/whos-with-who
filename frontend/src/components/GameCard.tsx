@@ -14,9 +14,7 @@ type Props = {
 
 export default function GameCard({ game, featured, compact, dailyDate }: Props) {
   const completed = getCompletedAttemptForGame(game.id)
-  const destination = completed
-    ? `/attempt/${completed.attemptId}/result`
-    : `/game/${game.id}/play`
+  const destination = `/game/${game.id}/play`
 
   const metaExtras = [
     completed ? `Score ${completed.score100}` : null,

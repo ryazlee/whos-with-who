@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Stack } from '@mui/material'
-import { Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import type { MatchAllSelections } from '../datastore/types'
+import AlreadyPlayedBanner from '../components/AlreadyPlayedBanner'
 import DrawLinesPlay from '../components/DrawLinesPlay'
 import GameSummaryHero from '../components/GameSummaryHero'
 import MatchAllPlay from '../components/MatchAllPlay'
@@ -15,6 +16,7 @@ import type { MatchingMode } from '../game/matchingModes'
 import { normalizeAllowedModes } from '../game/matchingModes'
 import { gamePairingShape } from '../game/pairMatching'
 import { isComplete as tapPairsComplete, matchAllComplete, selectionsToTapPairAssigned } from '../game/pairMatching'
+import { selectionsFromAttemptResult } from '../lib/attemptSelections'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
 
@@ -47,6 +49,7 @@ export default function PlayGamePage() {
   const gameId = id ?? 'demo'
 
   const { attempt: completedAttempt, loading: attemptLoading } = useMyGameAttempt(gameId)
+  const isReview = Boolean(completedAttempt)
 
   const { game, loading, error } = useGameForPlay(gameId)
   const { game: gameSummary } = useGameSummary(gameId)
@@ -69,8 +72,12 @@ export default function PlayGamePage() {
     if (!game) return
     const mode = pickInitialMode(game)
     setActiveMode(mode)
-    setSelections(emptySelections(mode))
-  }, [game])
+    if (completedAttempt) {
+      setSelections(selectionsFromAttemptResult(completedAttempt))
+    } else {
+      setSelections(emptySelections(mode))
+    }
+  }, [game, completedAttempt])
 
   useEffect(() => {
     if (!game || game.modeLocked) return
@@ -80,19 +87,13 @@ export default function PlayGamePage() {
   }, [activeMode, allowedModes, game])
 
   useEffect(() => {
-    if (!game) return
+    if (!game || isReview) return
     setSelections(emptySelections(activeMode))
   }, [activeMode]) // eslint-disable-line react-hooks/exhaustive-deps -- reset picks when switching mode
 
-  if (attemptLoading) {
+  if (attemptLoading || loading) {
     return <div className="page"><PageLoading /></div>
   }
-
-  if (completedAttempt) {
-    return <Navigate to={`/attempt/${completedAttempt.attemptId}/result`} replace />
-  }
-
-  if (loading) return <div className="page"><PageLoading /></div>
 
   if (error || !game) {
     return (
@@ -108,6 +109,8 @@ export default function PlayGamePage() {
     <div className="page page--withActionBar">
       <Stack spacing={2}>
         {gameSummary ? <GameSummaryHero game={gameSummary} avatarSize={44} avatarMax={3} /> : null}
+
+        {completedAttempt ? <AlreadyPlayedBanner attempt={completedAttempt} /> : null}
 
         <MatchingModeBar
           allowedModes={allowedModes}
@@ -125,6 +128,7 @@ export default function PlayGamePage() {
             pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
+            readOnly={isReview}
           />
         ) : activeMode === 'tap_pairs' ? (
           <TapPairsPlay
@@ -134,6 +138,7 @@ export default function PlayGamePage() {
             pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
+            readOnly={isReview}
           />
         ) : (
           <MatchAllPlay
@@ -143,23 +148,31 @@ export default function PlayGamePage() {
             pairsInGame={pairsInGame}
             selections={selections}
             onChange={setSelections}
+            readOnly={isReview}
           />
         )}
       </Stack>
 
       <StickyActionBar>
         <div className="stickyActionBarInner playSubmitDock">
-          <PrimaryActionButton
-            disabled={submitAttempt.isPending || !submitReady}
-            onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
-            label={
-              submitAttempt.isPending
-                ? 'Submitting…'
-                : submitReady
-                  ? 'Submit answers'
-                  : 'Match everyone first'
-            }
-          />
+          {isReview && completedAttempt ? (
+            <PrimaryActionButton
+              to={`/attempt/${completedAttempt.attemptId}/result`}
+              label="View score"
+            />
+          ) : (
+            <PrimaryActionButton
+              disabled={submitAttempt.isPending || !submitReady}
+              onClick={() => submitAttempt.mutate({ gameId: game.gameId, selections })}
+              label={
+                submitAttempt.isPending
+                  ? 'Submitting…'
+                  : submitReady
+                    ? 'Submit answers'
+                    : 'Match everyone first'
+              }
+            />
+          )}
         </div>
       </StickyActionBar>
     </div>
