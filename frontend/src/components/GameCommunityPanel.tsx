@@ -34,6 +34,7 @@ function PickRow({
   personId,
   partnerId,
   percent,
+  count,
   personById,
   personNameById,
   correctPartnerIdByPerson,
@@ -41,6 +42,7 @@ function PickRow({
   personId: ID
   partnerId: ID | null
   percent: number
+  count?: number
   personById: Map<string, Person>
   personNameById: Map<string, string>
   correctPartnerIdByPerson?: Map<ID, ID | null>
@@ -72,8 +74,9 @@ function PickRow({
             {pickLabel(personId, partnerId, personNameById)}
           </Typography>
         </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
           {percent}%
+          {count != null ? ` · ${count} ${count === 1 ? 'pick' : 'picks'}` : ''}
         </Typography>
       </Box>
       <LinearProgress variant="determinate" value={percent} className="crowdPickRow__bar" />
@@ -106,6 +109,7 @@ export default function GameCommunityPanel({
           personId={pick.personId}
           partnerId={pick.partnerId}
           percent={pick.percent}
+          count={pick.count}
           personById={personById}
           personNameById={personNameById}
           correctPartnerIdByPerson={correctPartnerIdByPerson}

@@ -44,6 +44,7 @@ export type MatchAllSelections = Record<ID, ID | null>
 export type CommunityGuessPick = {
   partnerId: ID | null
   percent: number
+  count?: number
 }
 
 export type CommunityPerPerson = Array<{
