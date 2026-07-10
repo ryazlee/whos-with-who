@@ -1,6 +1,7 @@
 import { Alert, Box, Button } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { AttemptResult } from '../datastore/types'
+import { formatScore } from '../lib/formatScore'
 
 type Props = {
   attempt: AttemptResult
@@ -27,7 +28,7 @@ export default function AlreadyPlayedBanner({ attempt }: Props) {
         }}
       >
         <span>
-          You already played this game — score <strong>{attempt.score100}</strong>. Your picks are
+          You already played this game — score <strong>{formatScore(attempt.score100, attempt.durationMs)}</strong>. Your picks are
           shown below (read-only).
         </span>
         <Button

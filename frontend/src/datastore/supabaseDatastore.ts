@@ -36,6 +36,7 @@ function parseAttemptResult(raw: Record<string, unknown>): AttemptResult {
     score100: raw.score100 as number,
     correctCount: raw.correctCount as number,
     totalQuestions: raw.totalQuestions as number,
+    durationMs: (raw.durationMs as number | null | undefined) ?? null,
     perPerson: raw.perPerson as AttemptResult['perPerson'],
     communityPerPerson: raw.communityPerPerson as AttemptResult['communityPerPerson'],
   }
@@ -167,6 +168,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
     gameId: ID
     selections: MatchAllSelections
     displayNameSnapshot: string
+    durationMs: number
   }): Promise<AttemptResult> {
     if (getCompletedAttemptForGame(args.gameId)) {
       throw new Error('You already played this game')
@@ -186,6 +188,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
       p_game_id: args.gameId,
       p_answers: answers,
       p_display_name: args.displayNameSnapshot,
+      p_duration_ms: args.durationMs,
     })
 
     if (error) throw error
@@ -257,6 +260,7 @@ class SupabaseWhoWithWhoDatastore implements WhoWithWhoDatastore {
       score100: row.score100 as number,
       correctCount: row.correctCount as number,
       rank: row.rank as number,
+      durationMs: (row.durationMs as number | null | undefined) ?? null,
     }))
   }
 

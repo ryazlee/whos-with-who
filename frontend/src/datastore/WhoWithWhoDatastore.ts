@@ -26,6 +26,7 @@ export interface WhoWithWhoDatastore {
     gameId: ID
     selections: MatchAllSelections
     displayNameSnapshot: string
+    durationMs: number
   }): Promise<AttemptResult>
 
   /** Returns this player's prior attempt for a game, if any. */

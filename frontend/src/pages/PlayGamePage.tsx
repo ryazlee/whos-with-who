@@ -7,8 +7,8 @@ import DrawLinesPlay from '../components/DrawLinesPlay'
 import GameSummaryHero from '../components/GameSummaryHero'
 import MatchAllPlay from '../components/MatchAllPlay'
 import { MatchingModeBar } from '../components/MatchingModePicker'
-import PageError from '../components/PageError'
-import PageLoading from '../components/PageLoading'
+import Page from '../components/Page'
+import PageQueryState from '../components/PageQueryState'
 import StickyActionBar from '../components/StickyActionBar'
 import TapPairsPlay from '../components/TapPairsPlay'
 import PrimaryActionButton from '../components/PrimaryActionButton'
@@ -22,6 +22,7 @@ import { orderPeopleForPlay } from '../lib/shufflePeople'
 import { applyAutoSinglesIfNeeded } from '../game/pairMatching'
 import { getPreferredMatchingMode } from '../lib/matchingModePreference'
 import { useGameForPlay, useGameSummary, useMyGameAttempt, useSubmitMatchAllAttempt } from '../hooks/useGame'
+import { usePlayTimer } from '../hooks/usePlayTimer'
 
 function emptySelections(_mode: MatchingMode): MatchAllSelections {
   return {}
@@ -56,7 +57,8 @@ export default function PlayGamePage() {
 
   const { game, loading, error } = useGameForPlay(gameId)
   const { game: gameSummary } = useGameSummary(gameId)
-  const submitAttempt = useSubmitMatchAllAttempt()
+  const getDurationMs = usePlayTimer(gameId, Boolean(game) && !isReview)
+  const submitAttempt = useSubmitMatchAllAttempt(getDurationMs)
 
   const [activeMode, setActiveMode] = useState<MatchingMode>('tap_pairs')
   const [selections, setSelections] = useState<MatchAllSelections>({})
@@ -112,22 +114,12 @@ export default function PlayGamePage() {
     )
   }, [game, isReview, peopleIds, singleCount, allowSingleChoice, selections])
 
-  if (attemptLoading || loading) {
-    return <div className="page"><PageLoading /></div>
-  }
-
-  if (error || !game) {
-    return (
-      <div className="page">
-        <PageError message={error ?? 'Not found'} />
-      </div>
-    )
-  }
-
   const submitReady = canSubmit(activeMode, peopleIds, selections, allowSingleChoice)
 
   return (
-    <div className="page page--withActionBar">
+    <PageQueryState loading={attemptLoading || loading} error={error} missing={!game}>
+      {game ? (
+    <Page withActionBar>
       <Stack spacing={2}>
         {gameSummary ? <GameSummaryHero game={gameSummary} avatarSize={44} avatarMax={3} /> : null}
 
@@ -196,6 +188,8 @@ export default function PlayGamePage() {
           )}
         </div>
       </StickyActionBar>
-    </div>
+    </Page>
+      ) : null}
+    </PageQueryState>
   )
 }

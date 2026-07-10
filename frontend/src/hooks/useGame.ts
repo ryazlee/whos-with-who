@@ -156,7 +156,7 @@ export function useGameCommunityStats(gameId: string) {
   }
 }
 
-export function useSubmitMatchAllAttempt() {
+export function useSubmitMatchAllAttempt(getDurationMs: () => number) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -166,6 +166,7 @@ export function useSubmitMatchAllAttempt() {
       submitMatchAllAttempt({
         ...args,
         displayNameSnapshot: user?.email ?? getOrCreateDisplayName(),
+        durationMs: getDurationMs(),
       }),
     onSuccess: (attempt) => {
       queryClient.setQueryData(queryKeys.attemptResult(attempt.attemptId), attempt)

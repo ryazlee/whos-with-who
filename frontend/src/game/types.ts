@@ -19,6 +19,7 @@ export type MatchAllScoreResult = {
   correctCount: number
   totalQuestions: number
   score100: number
+  durationMs?: number
   perPerson: Array<{
     personId: string
     correctPartnerId: string | null

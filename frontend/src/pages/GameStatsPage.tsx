@@ -1,12 +1,14 @@
-import { useMemo } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import EmptyState from '../components/EmptyState'
 import GameCommunityPanel from '../components/GameCommunityPanel'
 import GameLeaderboardPanel from '../components/GameLeaderboardPanel'
 import GameSummaryHero from '../components/GameSummaryHero'
+import Page from '../components/Page'
+import PageActionStack from '../components/PageActionStack'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
+import PageQueryState from '../components/PageQueryState'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
 import {
@@ -17,10 +19,11 @@ import {
   useGameLeaderboard,
   useGameSummary,
 } from '../hooks/useGame'
-import { answerKeyFromRelationships } from '../lib/answerKey'
+import { useCorrectPartnerIdByPerson } from '../hooks/useCorrectPartnerIdByPerson'
 import { formatAttemptCount } from '../lib/formatters'
 import { getLocalAttemptResult } from '../lib/localAttempts'
 import { gamePlayPath } from '../lib/gameUrl'
+import { formatScore } from '../lib/formatScore'
 
 export default function GameStatsPage() {
   const { id } = useParams<{ id: string }>()
@@ -38,106 +41,92 @@ export default function GameStatsPage() {
   )
 
   const yourResult = completed ? getLocalAttemptResult(completed.attemptId) : null
-  const correctPartnerIdByPerson = useMemo(() => {
-    if (yourResult) {
-      return new Map(yourResult.perPerson.map((row) => [row.personId, row.correctPartnerId]))
-    }
-    if (isOwner && editGame) {
-      return answerKeyFromRelationships(editGame.relationships)
-    }
-    return undefined
-  }, [yourResult, isOwner, editGame])
-
-  if (!gameId) {
-    return (
-      <div className="page">
-        <PageError message="Game not found" />
-      </div>
-    )
-  }
-
-  if (summaryLoading || accessLoading) {
-    return (
-      <div className="page">
-        <PageLoading />
-      </div>
-    )
-  }
-
-  if (summaryError || !game) {
-    return (
-      <div className="page">
-        <PageError message={summaryError ?? 'Game not found'} />
-      </div>
-    )
-  }
-
-  if (!canView) {
-    return (
-      <div className="page">
-        <GameSummaryHero game={game} />
-        <EmptyState
-          title="Stats locked"
-          description="Play this game to unlock the leaderboard and community picks."
-          action={<PrimaryActionButton to={gamePlayPath(game.id)} label="Play game" />}
-        />
-      </div>
-    )
-  }
-
+  const correctPartnerIdByPerson = useCorrectPartnerIdByPerson({
+    attemptResult: yourResult,
+    ownerRelationships: isOwner ? editGame?.relationships : undefined,
+  })
   const people = playGame?.people ?? []
   const statsLoading = playLoading || leaderboardLoading || communityLoading
 
+  if (!gameId) {
+    return (
+      <Page>
+        <PageError message="Game not found" />
+      </Page>
+    )
+  }
+
   return (
-    <div className="page">
-      <Stack spacing={2}>
-        <GameSummaryHero game={game} avatarSize={44} avatarMax={4} />
-
-        <SectionCard title="Overview">
-          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-            {formatAttemptCount(game.attemptCount)} · {game.peopleCount}{' '}
-            {game.peopleCount === 1 ? 'person' : 'people'}
-            {isOwner ? ' · You created this game' : null}
-            {completed ? ` · Your score: ${completed.score100}` : null}
-          </Typography>
-        </SectionCard>
-
-        {statsLoading && people.length === 0 ? (
-          <PageLoading />
+    <PageQueryState
+      loading={summaryLoading || accessLoading}
+      error={summaryError}
+      missing={!game}
+      missingMessage="Game not found"
+    >
+      {game ? (
+        !canView ? (
+          <Page>
+            <GameSummaryHero game={game} />
+            <EmptyState
+              title="Stats locked"
+              description="Play this game to unlock the leaderboard and community picks."
+              action={<PrimaryActionButton to={gamePlayPath(game.id)} label="Play game" />}
+            />
+          </Page>
         ) : (
-          <>
-            <GameLeaderboardPanel
-              leaderboard={leaderboard}
-              loading={leaderboardLoading}
-              highlightAttemptId={completed?.attemptId}
-              highlightName={yourResult?.displayNameSnapshot}
-              highlightScore={completed?.score100}
-            />
+          <Page>
+            <Stack spacing={2}>
+              <GameSummaryHero game={game} avatarSize={44} avatarMax={4} />
 
-            <GameCommunityPanel
-              communityPerPerson={communityStats}
-              people={people}
-              correctPartnerIdByPerson={correctPartnerIdByPerson}
-              collapsible={false}
-            />
-          </>
-        )}
+              <SectionCard title="Overview">
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                  {formatAttemptCount(game.attemptCount)} · {game.peopleCount}{' '}
+                  {game.peopleCount === 1 ? 'person' : 'people'}
+                  {isOwner ? ' · You created this game' : null}
+                  {completed ? ` · Your score: ${formatScore(completed.score100)}` : null}
+                </Typography>
+              </SectionCard>
 
-        <Stack spacing={1.5}>
-          {completed ? (
-            <PrimaryActionButton
-              to={`/attempt/${completed.attemptId}/result`}
-              label={`Your score (${completed.score100})`}
-            />
-          ) : (
-            <PrimaryActionButton to={gamePlayPath(game.id)} label="Play game" />
-          )}
-          {isOwner ? (
-            <PrimaryActionButton to={`/game/${game.id}/edit`} label="Edit game" variant="outlined" />
-          ) : null}
-          <PrimaryActionButton to={gamePlayPath(game.id)} label="Back to game" variant="outlined" />
-        </Stack>
-      </Stack>
-    </div>
+              {statsLoading && people.length === 0 ? (
+                <PageLoading />
+              ) : (
+                <>
+                  <GameLeaderboardPanel
+                    leaderboard={leaderboard}
+                    loading={leaderboardLoading}
+                    highlightAttemptId={completed?.attemptId}
+                    highlightName={yourResult?.displayNameSnapshot}
+                    highlightScore={completed?.score100}
+                    highlightDurationMs={yourResult?.durationMs}
+                  />
+
+                  <GameCommunityPanel
+                    communityPerPerson={communityStats}
+                    people={people}
+                    correctPartnerIdByPerson={correctPartnerIdByPerson}
+                    collapsible={false}
+                  />
+                </>
+              )}
+
+              <PageActionStack>
+                {completed ? (
+                  <PrimaryActionButton
+                    to={`/attempt/${completed.attemptId}/result`}
+                    label={`Your score (${formatScore(completed.score100)})`}
+                  />
+                ) : (
+                  <PrimaryActionButton to={gamePlayPath(game.id)} label="Play game" />
+                )}
+                {isOwner ? (
+                  <PrimaryActionButton to={`/game/${game.id}/edit`} label="Edit game" variant="outlined" />
+                ) : null}
+                <PrimaryActionButton to={gamePlayPath(game.id)} label="Back to game" variant="outlined" />
+              </PageActionStack>
+            </Stack>
+          </Page>
+        )
+      ) : null}
+    </PageQueryState>
   )
 }

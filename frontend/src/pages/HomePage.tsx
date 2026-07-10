@@ -2,6 +2,7 @@ import { Typography } from '@mui/material'
 import PageHeader from '../components/PageHeader'
 import GameCard from '../components/GameCard'
 import GameGrid from '../components/GameGrid'
+import Page from '../components/Page'
 import PageError from '../components/PageError'
 import PageLoading from '../components/PageLoading'
 import { useDailyChallenge, usePopularGames } from '../hooks/useGame'
@@ -13,7 +14,7 @@ export default function HomePage() {
   const feedGames = games.filter((g) => g.id !== daily?.game.id)
 
   return (
-    <div className="page">
+    <Page>
       <PageHeader
         title="Play"
         subtitle="Guess the couples — one try per game."
@@ -44,6 +45,6 @@ export default function HomePage() {
           ))}
         </GameGrid>
       )}
-    </div>
+    </Page>
   )
 }

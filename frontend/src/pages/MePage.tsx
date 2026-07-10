@@ -1,12 +1,14 @@
 import { Box, Button, Typography } from '@mui/material'
 import EmailCodeLogin from '../components/EmailCodeLogin'
-import EmptyState from '../components/EmptyState'
+import MeGameList, { MeGameListItem } from '../components/MeGameList'
 import MyGameCard from '../components/MyGameCard'
+import Page from '../components/Page'
 import PageHeader from '../components/PageHeader'
 import PageLoading from '../components/PageLoading'
 import PlayedGameCard from '../components/PlayedGameCard'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import SectionCard from '../components/SectionCard'
+import SectionQueryContent from '../components/SectionQueryContent'
 import { useAuth } from '../contexts/AuthContext'
 import { useMyGames, usePlayedGames } from '../hooks/useGame'
 import { signOut } from '../lib/auth'
@@ -18,14 +20,14 @@ export default function MePage() {
 
   if (authLoading) {
     return (
-      <div className="page">
+      <Page>
         <PageLoading />
-      </div>
+      </Page>
     )
   }
 
   return (
-    <div className="page mePage">
+    <Page className="mePage">
       <PageHeader
         title="Me"
         subtitle={
@@ -53,30 +55,22 @@ export default function MePage() {
       ) : null}
 
       <SectionCard title="Games you've played" subtitle="Saved on this device" noPadding>
-        {playedLoading ? (
-          <Box sx={{ px: 2, py: 2 }}>
-            <PageLoading />
-          </Box>
-        ) : playedError ? (
-          <Typography variant="body2" color="error" sx={{ px: 2, py: 1.5 }}>
-            {playedError}
-          </Typography>
-        ) : playedGames.length === 0 ? (
-          <EmptyState
-            title="No games played yet"
-            description="Finish a game and your score will show up here."
-            action={<PrimaryActionButton to="/" label="Browse games" />}
-          />
-        ) : (
-          <Box className="meGameList">
+        <SectionQueryContent
+          loading={playedLoading}
+          error={playedError}
+          isEmpty={playedGames.length === 0}
+          emptyTitle="No games played yet"
+          emptyDescription="Finish a game and your score will show up here."
+          emptyAction={<PrimaryActionButton to="/" label="Browse games" />}
+        >
+          <MeGameList>
             {playedGames.map(({ ref, summary }, index) => (
-              <Box key={ref.attemptId}>
-                {index > 0 ? <Box className="meGameList__divider" role="separator" /> : null}
+              <MeGameListItem key={ref.attemptId} showDivider={index > 0}>
                 <PlayedGameCard attempt={ref} game={summary} />
-              </Box>
+              </MeGameListItem>
             ))}
-          </Box>
-        )}
+          </MeGameList>
+        </SectionQueryContent>
       </SectionCard>
 
       {isConfigured && !user ? (
@@ -87,30 +81,22 @@ export default function MePage() {
 
       {isConfigured && user ? (
         <SectionCard title="My games" subtitle="Games you've published" noPadding>
-          {gamesLoading ? (
-            <Box sx={{ px: 2, py: 2 }}>
-              <PageLoading />
-            </Box>
-          ) : gamesError ? (
-            <Typography variant="body2" color="error" sx={{ px: 2, py: 1.5 }}>
-              {gamesError}
-            </Typography>
-          ) : games.length === 0 ? (
-            <EmptyState
-              title="No games yet"
-              description="Create a game and it will show up here for you to manage."
-              action={<PrimaryActionButton to="/create" label="Create a game" />}
-            />
-          ) : (
-            <Box className="meGameList">
+          <SectionQueryContent
+            loading={gamesLoading}
+            error={gamesError}
+            isEmpty={games.length === 0}
+            emptyTitle="No games yet"
+            emptyDescription="Create a game and it will show up here for you to manage."
+            emptyAction={<PrimaryActionButton to="/create" label="Create a game" />}
+          >
+            <MeGameList>
               {games.map((game, index) => (
-                <Box key={game.id}>
-                  {index > 0 ? <Box className="meGameList__divider" role="separator" /> : null}
+                <MeGameListItem key={game.id} showDivider={index > 0}>
                   <MyGameCard game={game} />
-                </Box>
+                </MeGameListItem>
               ))}
-            </Box>
-          )}
+            </MeGameList>
+          </SectionQueryContent>
         </SectionCard>
       ) : null}
 
@@ -119,6 +105,6 @@ export default function MePage() {
           Offline mode — played games are stored in this browser only.
         </Typography>
       ) : null}
-    </div>
+    </Page>
   )
 }

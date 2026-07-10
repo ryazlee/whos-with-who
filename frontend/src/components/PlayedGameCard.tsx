@@ -4,6 +4,7 @@ import type { GameSummary } from '../datastore/types'
 import type { GameAttemptRef } from '../lib/localAttempts'
 import { formatPostedDate } from '../lib/formatters'
 import { gameStatsPath } from '../lib/gameUrl'
+import { formatScore } from '../lib/formatScore'
 import GameCardContent from './GameCardContent'
 
 type Props = {
@@ -23,7 +24,7 @@ export default function PlayedGameCard({ attempt, game }: Props) {
           tagLimit={2}
           avatarSize={32}
           avatarMax={3}
-          metaExtras={[`Score ${attempt.score100}`, playedOn ? `Played ${playedOn}` : null]}
+          metaExtras={[`Score ${formatScore(attempt.score100)}`, playedOn ? `Played ${playedOn}` : null]}
         />
       ) : (
         <Box className="gameCardStack gameCardStack--inline">
@@ -32,7 +33,7 @@ export default function PlayedGameCard({ attempt, game }: Props) {
               {attempt.gameId}
             </Typography>
             <Typography variant="caption" className="gameCard__meta" component="p">
-              Score {attempt.score100}
+              Score {formatScore(attempt.score100)}
               {playedOn ? ` · Played ${playedOn}` : ''}
             </Typography>
           </Box>

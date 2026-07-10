@@ -1,4 +1,5 @@
 import { computeMatchAllScore } from '../game/matchAllScoring'
+import { compareScores } from '../game/timedScoring'
 import {
   getCompletedAttemptForGame,
   getLocalAttemptResult,
@@ -132,11 +133,12 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
         displayName: a.displayNameSnapshot,
         score100: a.score100,
         correctCount: a.correctCount,
+        durationMs: a.durationMs ?? null,
         rank: 0,
       }))
 
     const merged = [...live, ...seeded]
-      .sort((a, b) => b.score100 - a.score100 || b.correctCount - a.correctCount)
+      .sort((a, b) => compareScores(a, b))
       .slice(0, limit)
       .map((row, index) => ({ ...row, rank: index + 1 }))
 
@@ -173,6 +175,7 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
     gameId: ID
     selections: MatchAllSelections
     displayNameSnapshot: string
+    durationMs: number
   }): Promise<AttemptResult> {
     const game = getMockGame(args.gameId)
     if (!game) throw new Error('Game not found')
@@ -184,6 +187,7 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
     const score = computeMatchAllScore({
       correctness: game.correctness,
       selections: args.selections,
+      durationMs: args.durationMs,
     })
 
     const attemptId = makeAttemptId()
@@ -206,6 +210,7 @@ class MockWhoWithWhoDatastore implements WhoWithWhoDatastore {
       score100: score.score100,
       correctCount: score.correctCount,
       totalQuestions: score.totalQuestions,
+      durationMs: args.durationMs,
       perPerson: score.perPerson,
       communityPerPerson,
     }

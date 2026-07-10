@@ -1,5 +1,6 @@
 import GameCard from '../components/GameCard'
 import GameGrid from '../components/GameGrid'
+import Page from '../components/Page'
 import PageError from '../components/PageError'
 import PageHeader from '../components/PageHeader'
 import PageLoading from '../components/PageLoading'
@@ -9,7 +10,7 @@ export default function SearchPage() {
   const { games, loading, error } = usePopularGames()
 
   return (
-    <div className="page">
+    <Page>
       <PageHeader
         title="Browse"
         subtitle="Public games you can play right now."
@@ -26,6 +27,6 @@ export default function SearchPage() {
           ))}
         </GameGrid>
       )}
-    </div>
+    </Page>
   )
 }

@@ -62,6 +62,7 @@ export type LeaderboardEntry = {
   score100: number
   correctCount: number
   rank: number
+  durationMs?: number | null
 }
 
 export type AttemptResult = {
@@ -72,6 +73,7 @@ export type AttemptResult = {
   score100: number
   correctCount: number
   totalQuestions: number
+  durationMs?: number | null
   perPerson: Array<{
     personId: ID
     correctPartnerId: ID | null

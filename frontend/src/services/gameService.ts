@@ -37,6 +37,7 @@ export async function submitMatchAllAttempt(args: {
   gameId: ID
   selections: MatchAllSelections
   displayNameSnapshot: string
+  durationMs: number
 }): Promise<AttemptResult> {
   return datastore.submitMatchAllAttempt(args)
 }

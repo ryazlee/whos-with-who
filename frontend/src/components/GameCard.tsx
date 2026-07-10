@@ -2,6 +2,7 @@ import { Box, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { GameSummary } from '../datastore/types'
 import { findCompletedAttemptForRef } from '../lib/localAttempts'
+import { formatScore } from '../lib/formatScore'
 import GameCardContent from './GameCardContent'
 import PrimaryActionButton from './PrimaryActionButton'
 
@@ -17,7 +18,7 @@ export default function GameCard({ game, featured, compact, dailyDate }: Props) 
   const destination = `/game/${game.id}/play`
 
   const metaExtras = [
-    completed ? `Score ${completed.score100}` : null,
+    completed ? `Score ${formatScore(completed.score100)}` : null,
   ]
 
   if (featured) {

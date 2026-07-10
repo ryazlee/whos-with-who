@@ -3,6 +3,7 @@ import { Box, LinearProgress, Stack, Typography } from '@mui/material'
 import type { CommunityPerPerson, ID } from '../datastore/types'
 import type { Person } from '../game/types'
 import { isCommunityPickCorrect, sortedCommunityPicks } from '../lib/communityPicks'
+import { buildPersonById, buildPersonNameById } from '../lib/personMaps'
 import { TOP_LIST_EXPANDED_COUNT, TOP_LIST_PREVIEW_COUNT } from '../lib/topListLimits'
 import PersonAvatar from './PersonAvatar'
 import SectionCard from './SectionCard'
@@ -89,8 +90,8 @@ export default function GameCommunityPanel({
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
-  const personById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
-  const personNameById = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people])
+  const personById = useMemo(() => buildPersonById(people), [people])
+  const personNameById = useMemo(() => buildPersonNameById(people), [people])
 
   const allPicks = useMemo(() => sortedCommunityPicks(communityPerPerson), [communityPerPerson])
   const visibleLimit = expanded ? TOP_LIST_EXPANDED_COUNT : TOP_LIST_PREVIEW_COUNT

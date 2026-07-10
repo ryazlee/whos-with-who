@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import type { LeaderboardEntry } from '../datastore/types'
 import { TOP_LIST_EXPANDED_COUNT, TOP_LIST_PREVIEW_COUNT } from '../lib/topListLimits'
+import { formatDuration, formatScore } from '../lib/formatScore'
 import SectionCard from './SectionCard'
 import TopListExpandButton from './TopListExpandButton'
 
@@ -11,6 +12,7 @@ type Props = {
   highlightAttemptId?: string
   highlightName?: string
   highlightScore?: number
+  highlightDurationMs?: number | null
 }
 
 export default function GameLeaderboardPanel({
@@ -19,6 +21,7 @@ export default function GameLeaderboardPanel({
   highlightAttemptId,
   highlightName,
   highlightScore,
+  highlightDurationMs,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
@@ -65,7 +68,12 @@ export default function GameLeaderboardPanel({
                     {isYou ? ' (you)' : ''}
                   </Typography>
                   <Typography component="p" className="leaderboardRow__score">
-                    {row.score100}
+                    {formatScore(row.score100, row.durationMs)}
+                    {row.durationMs != null ? (
+                      <Typography component="span" variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        {formatDuration(row.durationMs)}
+                      </Typography>
+                    ) : null}
                   </Typography>
                 </Box>
               )
@@ -76,9 +84,9 @@ export default function GameLeaderboardPanel({
                 <Typography component="p" className="leaderboardRow__name">
                   {highlightName} (you)
                 </Typography>
-                <Typography component="p" className="leaderboardRow__score">
-                  {highlightScore}
-                </Typography>
+              <Typography component="p" className="leaderboardRow__score">
+                {highlightScore != null ? formatScore(highlightScore, highlightDurationMs) : '—'}
+              </Typography>
               </Box>
             ) : null}
           </Box>

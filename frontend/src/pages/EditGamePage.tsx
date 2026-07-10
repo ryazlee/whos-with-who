@@ -1,44 +1,34 @@
 import {
   Alert,
-  Box,
   Button,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
   Snackbar,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material'
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import CreatorMatchingModeSettings from '../components/CreatorMatchingModeSettings'
-import GameVisibilityPicker from '../components/GameVisibilityPicker'
+import {
+  GameEditorAnswerKeySection,
+  GameEditorDetailsSection,
+  GameEditorPeopleSection,
+} from '../components/GameEditorSections'
 import GameAuthorLine from '../components/GameAuthorLine'
-import TagInput from '../components/TagInput'
 import EmptyState from '../components/EmptyState'
+import Page from '../components/Page'
 import PageHeader from '../components/PageHeader'
 import PageLoading from '../components/PageLoading'
-import PersonPhotoUpload from '../components/PersonPhotoUpload'
 import PrimaryActionButton from '../components/PrimaryActionButton'
-import RelationshipEditor, {
-  type DraftPerson,
-  type DraftRelationships,
-  hasSingles,
-  relationshipsComplete,
-  syncRelationshipsForPeople,
-} from '../components/RelationshipEditor'
 import SectionCard from '../components/SectionCard'
 import { useAuth } from '../contexts/AuthContext'
-import type { MatchingMode } from '../game/matchingModes'
-import { MATCHING_MODES } from '../game/matchingModes'
+import { useGameEditorDraft } from '../hooks/useGameEditorDraft'
 import {
   useDeleteGame,
   useGameForEdit,
@@ -47,10 +37,6 @@ import {
   useUpdateGame,
 } from '../hooks/useGame'
 import { absoluteGameUrl, gameStatsPath } from '../lib/gameUrl'
-
-function makePersonId() {
-  return crypto.randomUUID()
-}
 
 export default function EditGamePage() {
   const { id } = useParams<{ id: string }>()
@@ -62,44 +48,25 @@ export default function EditGamePage() {
   const updateMutation = useUpdateGame()
   const deleteMutation = useDeleteGame()
 
+  const draft = useGameEditorDraft()
+  const { loadDraft } = draft
+
   const [copied, setCopied] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [saveFeedback, setSaveFeedback] = useState(false)
   const saveFeedbackTimeoutRef = useRef<number | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [tags, setTags] = useState<string[]>([])
-  const [visibility, setVisibility] = useState<'public' | 'unlisted'>('public')
-  const [ownerMatchingMode, setOwnerMatchingMode] = useState<MatchingMode>('tap_pairs')
-  const [modeLocked, setModeLocked] = useState(false)
-  const [allowedMatchingModes, setAllowedMatchingModes] = useState<MatchingMode[]>([...MATCHING_MODES])
-  const [people, setPeople] = useState<DraftPerson[]>([])
-  const [relationships, setRelationships] = useState<DraftRelationships>({})
-
   const ownedGame = useMemo(
-    () => myGames.find((g) => g.id === id),
+    () => myGames.find((game) => game.id === id),
     [myGames, id],
   )
 
   useEffect(() => {
     if (!editData || initialized) return
-    setTitle(editData.title)
-    setDescription(editData.description)
-    setTags(editData.tags)
-    setVisibility(editData.visibility)
-    setOwnerMatchingMode(editData.ownerMatchingMode)
-    setModeLocked(editData.modeLocked)
-    setAllowedMatchingModes(editData.allowedMatchingModes)
-    setPeople(editData.people)
-    setRelationships(editData.relationships)
+    loadDraft(editData)
     setInitialized(true)
-  }, [editData, initialized])
-
-  useEffect(() => {
-    setRelationships((prev) => syncRelationshipsForPeople(people, prev))
-  }, [people])
+  }, [editData, initialized, loadDraft])
 
   useEffect(() => {
     return () => {
@@ -128,98 +95,72 @@ export default function EditGamePage() {
     }
   }
 
-  function updatePerson(personId: string, patch: Partial<DraftPerson>) {
-    setPeople((prev) => prev.map((p) => (p.id === personId ? { ...p, ...patch } : p)))
-  }
-
-  function addPerson() {
-    setPeople((prev) => [...prev, { id: makePersonId(), name: '', photoDataUrl: null }])
-  }
-
-  function removePerson(personId: string) {
-    setPeople((prev) => {
-      if (prev.length <= 2) return prev
-      const next = prev.filter((p) => p.id !== personId)
-      setRelationships((rel) => syncRelationshipsForPeople(next, rel))
-      return next
-    })
-  }
-
-  const relationshipsReady = relationshipsComplete(people, relationships)
-
-  const formReady = useMemo(() => {
-    if (!title.trim()) return false
-    if (people.length < 2) return false
-    if (!people.every((p) => p.name.trim() && p.photoDataUrl)) return false
-    return relationshipsReady
-  }, [title, people, relationshipsReady])
-
   const isOwner = Boolean(ownedGame)
   const shareUrl = id ? absoluteGameUrl(id) : ''
 
   if (!id) {
     return (
-      <div className="page">
+      <Page>
         <EmptyState title="Game not found" description="Missing game id." />
-      </div>
+      </Page>
     )
   }
 
   if (authLoading || summaryLoading || myGamesLoading || (isOwner && editLoading)) {
     return (
-      <div className="page">
+      <Page>
         <PageLoading />
-      </div>
+      </Page>
     )
   }
 
   if (!user) {
     return (
-      <div className="page">
+      <Page>
         <PageHeader title="Game settings" subtitle="Sign in to manage this game." />
         <EmptyState
           title="Sign in required"
           description="Only the game creator can change settings."
           action={<PrimaryActionButton to="/me" label="Sign in" />}
         />
-      </div>
+      </Page>
     )
   }
 
   if (summaryError || !summary) {
     return (
-      <div className="page">
+      <Page>
         <EmptyState
           title="Game not found"
           description={summaryError ?? 'This game may have been deleted.'}
           action={<PrimaryActionButton to="/me" label="My games" />}
         />
-      </div>
+      </Page>
     )
   }
 
   if (!isOwner) {
     return (
-      <div className="page">
+      <Page>
         <PageHeader title={summary.title} subtitle="Game settings" />
         <EmptyState
           title="Not your game"
           description="Only the creator can edit this game."
           action={<PrimaryActionButton to={`/game/${id}`} label="Back to game" />}
         />
-      </div>
+      </Page>
     )
   }
 
   if (editError || !editData) {
     return (
-      <div className="page">
+      <Page>
         <EmptyState
           title="Could not load game"
           description={editError ?? 'Try again later.'}
           action={<PrimaryActionButton to="/me" label="My games" />}
         />
-      </div>
+      </Page>
     )
   }
 
@@ -227,15 +168,15 @@ export default function EditGamePage() {
     clearSaveFeedback()
     await updateMutation.mutateAsync({
       gameRef: id!,
-      title,
-      description,
-      tags,
-      visibility,
-      ownerMatchingMode,
-      modeLocked,
-      allowedMatchingModes,
-      people,
-      relationships,
+      title: draft.title,
+      description: draft.description,
+      tags: draft.tags,
+      visibility: draft.visibility,
+      ownerMatchingMode: draft.ownerMatchingMode,
+      modeLocked: draft.modeLocked,
+      allowedMatchingModes: draft.allowedMatchingModes,
+      people: draft.people,
+      relationships: draft.relationships,
     })
     showSaveFeedback()
   }
@@ -254,13 +195,13 @@ export default function EditGamePage() {
 
   function saveButtonLabel() {
     if (saveFeedback) return 'Saved!'
-    if (!formReady) return 'Fill in all fields to save'
+    if (!draft.formReady) return 'Fill in all fields to save'
     if (updateMutation.isPending) return 'Saving…'
     return 'Save changes'
   }
 
   return (
-    <div className="page">
+    <Page>
       <PageHeader title="Edit game" subtitle="Update details, people, and the answer key." />
 
       <SectionCard>
@@ -275,131 +216,39 @@ export default function EditGamePage() {
         </Alert>
       ) : null}
 
-      <SectionCard title="Details">
-        <Stack spacing={2}>
-          <TextField
-            label="Game title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            fullWidth
-            placeholder="Friend group reunion"
-          />
+      <GameEditorDetailsSection
+        title={draft.title}
+        onTitleChange={draft.setTitle}
+        description={draft.description}
+        onDescriptionChange={draft.setDescription}
+        tags={draft.tags}
+        onTagsChange={draft.setTags}
+        visibility={draft.visibility}
+        onVisibilityChange={draft.setVisibility}
+        ownerMatchingMode={draft.ownerMatchingMode}
+        onOwnerMatchingModeChange={draft.setOwnerMatchingMode}
+        modeLocked={draft.modeLocked}
+        onModeLockedChange={draft.setModeLocked}
+        allowedMatchingModes={draft.allowedMatchingModes}
+        onAllowedMatchingModesChange={draft.setAllowedMatchingModes}
+        disabled={updateMutation.isPending}
+      />
 
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={5}
-            placeholder="What's this game about? Give players a little context."
-          />
+      <GameEditorPeopleSection
+        people={draft.people}
+        onUpdatePerson={draft.updatePerson}
+        onAddPerson={draft.addPerson}
+        onRemovePerson={draft.removePerson}
+      />
 
-          <Box>
-            <Typography className="section-label" component="p" sx={{ mb: 0.75 }}>
-              Tags
-            </Typography>
-            <TagInput value={tags} onChange={setTags} disabled={updateMutation.isPending} />
-          </Box>
-
-          <GameVisibilityPicker
-            value={visibility}
-            onChange={setVisibility}
-            disabled={updateMutation.isPending}
-          />
-
-          <CreatorMatchingModeSettings
-            modeLocked={modeLocked}
-            onModeLockedChange={setModeLocked}
-            lockedMode={ownerMatchingMode}
-            onLockedModeChange={setOwnerMatchingMode}
-            allowedModes={allowedMatchingModes}
-            onAllowedModesChange={setAllowedMatchingModes}
-          />
-        </Stack>
-      </SectionCard>
-
-      <SectionCard
-        title="People"
-        subtitle="Photo and name required for each person"
-        noPadding
-      >
-        <Stack spacing={0} divider={<Box sx={{ borderTop: 1, borderColor: 'divider' }} />}>
-          {people.map((person, index) => (
-            <Box
-              key={person.id}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1.25,
-                alignItems: 'stretch',
-                px: 2,
-                py: 1.5,
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <PersonPhotoUpload
-                  value={person.photoDataUrl}
-                  onChange={(photoDataUrl) => updatePerson(person.id, { photoDataUrl })}
-                  required
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Person {index + 1}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                <TextField
-                  label="Name"
-                  value={person.name}
-                  onChange={(e) => updatePerson(person.id, { name: e.target.value })}
-                  fullWidth
-                  placeholder="Alex"
-                  required
-                />
-                <IconButton
-                  onClick={() => removePerson(person.id)}
-                  disabled={people.length <= 2}
-                  aria-label="Remove person"
-                  sx={{ mt: 0.5, flexShrink: 0 }}
-                >
-                  <DeleteOutlineOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          ))}
-        </Stack>
-        <Box sx={{ px: 2, pb: 2, pt: 1 }}>
-          <Button
-            startIcon={<AddOutlinedIcon />}
-            onClick={addPerson}
-            variant="outlined"
-            fullWidth
-            sx={{ py: 1.1, borderStyle: 'dashed' }}
-          >
-            Add person
-          </Button>
-        </Box>
-      </SectionCard>
-
-      <SectionCard
-        title="Answer key"
-        subtitle="The real couples — players try to match these"
-      >
-        {hasSingles(relationships) ? (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-            Singles are allowed in this game.
-          </Typography>
-        ) : null}
-        <RelationshipEditor
-          people={people}
-          relationships={relationships}
-          onChange={setRelationships}
-        />
-      </SectionCard>
+      <GameEditorAnswerKeySection
+        people={draft.people}
+        relationships={draft.relationships}
+        onRelationshipsChange={draft.setRelationships}
+      />
 
       <PrimaryActionButton
-        disabled={!formReady || updateMutation.isPending}
+        disabled={!draft.formReady || updateMutation.isPending}
         onClick={() => void saveChanges()}
         label={saveButtonLabel()}
         color={saveFeedback ? 'success' : 'primary'}
@@ -452,7 +301,7 @@ export default function EditGamePage() {
 
       <SectionCard title="Share link">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25, lineHeight: 1.5 }}>
-          {visibility === 'unlisted'
+          {draft.visibility === 'unlisted'
             ? 'Anyone with this link can play. The game stays hidden from Home and Browse.'
             : 'Public games also appear on Home and Browse. This link still works for sharing.'}
         </Typography>
@@ -517,6 +366,6 @@ export default function EditGamePage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Page>
   )
 }
